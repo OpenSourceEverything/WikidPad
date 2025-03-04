@@ -3947,51 +3947,44 @@ class CustomTreeCtrl(wx.ScrolledWindow):
 
 
     def ScrollTo(self, item):
-        """Scrolls the specified item into view."""
-        
         if not item:
             return
 
-        # We have to call this here because the label in
-        # question might just have been added and no screen
-        # update taken place.
         if self._dirty:
             if wx.Platform in ["__WXMSW__", "__WXMAC__"]:
                 self.Update()
         else:
             wx.GetApp().Yield(onlyIfNeeded=True)
 
-        # now scroll to the item
         item_y = item.GetY()
         start_x, start_y = self.GetViewStart()
         start_y *= _PIXELS_PER_UNIT
-
         client_w, client_h = self.GetClientSize()
-
         x, y = 0, 0
 
-        if item_y < start_y+3:
-        
-            # going down
+        if item_y < start_y + 3:
             x, y = self._anchor.GetSize(x, y, self)
-            y += _PIXELS_PER_UNIT + 2 # one more scrollbar unit + 2 pixels
-            x += _PIXELS_PER_UNIT + 2 # one more scrollbar unit + 2 pixels
+            y += _PIXELS_PER_UNIT + 2
+            x += _PIXELS_PER_UNIT + 2
             x_pos = self.GetScrollPos(wx.HORIZONTAL)
-            # Item should appear at top
-            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT, x/_PIXELS_PER_UNIT, y/_PIXELS_PER_UNIT, x_pos, item_y/_PIXELS_PER_UNIT)
-        
-        elif item_y+self.GetLineHeight(item) > start_y+client_h:
-        
-            # going up
+            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT,
+                            int(x / _PIXELS_PER_UNIT),
+                            int(y / _PIXELS_PER_UNIT),
+                            x_pos,
+                            int(item_y / _PIXELS_PER_UNIT))
+        elif item_y + self.GetLineHeight(item) > start_y + client_h:
             x, y = self._anchor.GetSize(x, y, self)
-            y += _PIXELS_PER_UNIT + 2 # one more scrollbar unit + 2 pixels
-            x += _PIXELS_PER_UNIT + 2 # one more scrollbar unit + 2 pixels
-            item_y += _PIXELS_PER_UNIT+2
+            y += _PIXELS_PER_UNIT + 2
+            x += _PIXELS_PER_UNIT + 2
+            item_y += _PIXELS_PER_UNIT + 2
             x_pos = self.GetScrollPos(wx.HORIZONTAL)
-            # Item should appear at bottom
-            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT, x/_PIXELS_PER_UNIT, y/_PIXELS_PER_UNIT, x_pos, (item_y+self.GetLineHeight(item)-client_h)/_PIXELS_PER_UNIT )
-
-
+            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT,
+                            int(x / _PIXELS_PER_UNIT),
+                            int(y / _PIXELS_PER_UNIT),
+                            x_pos,
+                            int((item_y + self.GetLineHeight(item) - client_h)
+                                / _PIXELS_PER_UNIT))
+        
     def ScrollToMiddle(self, item):
         """Scrolls the specified item into the vertical middle of the view."""
 
@@ -4269,7 +4262,7 @@ class CustomTreeCtrl(wx.ScrolledWindow):
             x += _PIXELS_PER_UNIT + 2 # one more scrollbar unit + 2 pixels
             x_pos = self.GetScrollPos(wx.HORIZONTAL)
             y_pos = self.GetScrollPos(wx.VERTICAL)
-            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT, x/_PIXELS_PER_UNIT, y/_PIXELS_PER_UNIT, x_pos, y_pos)
+            self.SetScrollbars(_PIXELS_PER_UNIT, _PIXELS_PER_UNIT, int(x/_PIXELS_PER_UNIT), int(y/_PIXELS_PER_UNIT), x_pos, y_pos)
         
         else:
         

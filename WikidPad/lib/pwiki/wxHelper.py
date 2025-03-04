@@ -26,7 +26,12 @@ def _unescapeWithRe(text):
     """
     return re.sub("", text, "", 1)
 
-
+def generate_logical_id():
+    ver = wx.VERSION
+    if ver[0] < 4:
+        return wx.NewId()
+    else:
+        return int(wx.NewIdRef())
 
 class wxSourceId:
     """
@@ -63,14 +68,15 @@ class wxIdPool:
         """
         try:
             if name not in self._xrcPoolcache:
-                self._xrcPoolcache[name] = wxSourceId(XRCID(name))
+               self._xrcPoolcache[name] = int(XRCID(name))
                 
             return self._xrcPoolcache[name]
         except:
             try:
                 return self._poolmap[name]
             except KeyError:
-                id = wxSourceId(wx.NewId())
+                #id = wxSourceId(wx.NewId())
+                id = generate_logical_id()
                 self._poolmap[name] = id
                 return id
                 

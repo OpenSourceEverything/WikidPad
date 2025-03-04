@@ -685,8 +685,8 @@ def createWikiDB(wikiName, dataDir, overwrite=False, wikiDocument=None):
 
 
 def mbcsToUtf8(s):
-    return utf8Enc(mbcsDec(s)[0])[0]
-
+    decoded = mbcsDec(s)[0]
+    return decoded.encode("utf-8", "surrogatepass")
 
 def sqlite_utf8Normcase(context, values):
     """

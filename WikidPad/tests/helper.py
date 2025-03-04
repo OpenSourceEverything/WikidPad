@@ -15,7 +15,8 @@ from itertools import chain
 import os
 import re
 import sys
-import imp
+import importlib
+import importlib.util
 import wx
 
 # Create a dummy app.
@@ -45,7 +46,7 @@ from pwiki.StringOps import LOWERCASE, UPPERCASE
 from wikidPadParser import WikidPadParser
 from mediaWikiParser import MediaWikiParser
 
-OverlayParser = imp.load_source('OverlayParser', os.path.join(EXTENSIONDIR,
+OverlayParser = importlib.util.spec_from_file_location('OverlayParser', os.path.join(EXTENSIONDIR,
         "OverlayParser.pyf"))
 
 # import OverlayParser

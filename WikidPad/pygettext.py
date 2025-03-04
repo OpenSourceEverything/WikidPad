@@ -168,7 +168,7 @@ If `inputfile' is -, standard input is read.
 """)
 
 import os
-import imp
+import importlib
 import sys
 import glob
 import time
@@ -325,7 +325,7 @@ def containsAny(str, set):
 #     # get extension for python source files
 #     if '_py_ext' not in globals():
 #         global _py_ext
-#         _py_ext = [triple[0] for triple in imp.get_suffixes()
+#         _py_ext = [triple[0] for triple in [".py"]
 #                    if triple[2] == imp.PY_SOURCE][0]
 # 
 #     print("--_visit_pyfiles11", repr(_py_ext))
@@ -354,13 +354,13 @@ def _get_modpkg_path(dotted_name, pathlist=None):
     if len(parts) > 1:
         # we have a dotted path, import top-level package
         try:
-            file, pathname, description = imp.find_module(parts[0], pathlist)
+            file, pathname, description = importlib.util.find_spec(parts[0], pathlist)
             if file: file.close()
         except ImportError:
             return None
 
         # check if it's indeed a package
-        if description[2] == imp.PKG_DIRECTORY:
+        if description[2] == importlib.machinery.PackageLoader:
             # recursively handle the remaining name parts
             pathname = _get_modpkg_path(parts[1], [pathname])
         else:
@@ -368,11 +368,11 @@ def _get_modpkg_path(dotted_name, pathlist=None):
     else:
         # plain name
         try:
-            file, pathname, description = imp.find_module(
+            file, pathname, description = importlib.util.find_spec(
                 dotted_name, pathlist)
             if file:
                 file.close()
-            if description[2] not in [imp.PY_SOURCE, imp.PKG_DIRECTORY]:
+            if description[2] not in [imp.PY_SOURCE, importlib.machinery.PackageLoader]:
                 pathname = None
         except ImportError:
             pathname = None
@@ -401,7 +401,7 @@ def getFilesForName(name):
     if os.path.isdir(name):
         if '_py_ext' not in globals():
             global _py_ext
-            _py_ext = [triple[0] for triple in imp.get_suffixes()
+            _py_ext = [triple[0] for triple in [".py"]
                        if triple[2] == imp.PY_SOURCE][0]
 
         # find all python files in directory

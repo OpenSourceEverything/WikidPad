@@ -1592,7 +1592,7 @@ class AuiTabContainer:
             tab_button = self._tab_close_buttons[self._tab_offset - 1]
             size, x_extent = self._art.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, tab_button.cur_state, page.control)
 
-            rect = wx.Rect(offset - x_extent, 0, self._rect.width - right_buttons_width - offset - x_extent - 2, self._rect.height)
+            rect = wx.Rect((offset - x_extent), 0, (self._rect.width - right_buttons_width - offset - x_extent - 2), self._rect.height)
             clip_rect = wx.Rect(*self._rect)
             clip_rect.x = offset
 
@@ -2906,7 +2906,7 @@ class TabFrame(wx.Window):
             self._tab_rect = wx.Rect(self._rect.x, self._rect.y, self._rect.width, self._tab_ctrl_height)
 
             if self._tabs.GetAGWFlags() & AUI_NB_BOTTOM:
-                self._tab_rect = wx.Rect(self._rect.x, self._rect.y + self._rect.height - tab_height,
+                self._tab_rect = wx.Rect(self._rect.x, (self._rect.y + self._rect.height - tab_height),
                                          self._rect.width, tab_height)
                 self._tabs.SetSize(self._rect.x, self._rect.y + self._rect.height - tab_height,
                                    self._rect.width, tab_height)
@@ -3467,8 +3467,8 @@ class AuiNotebook(wx.Panel):
         # should happen around the middle
         if tab_ctrl_count < 2:
             new_split_size = self.GetClientSize()
-            new_split_size.x /= 2
-            new_split_size.y /= 2
+            new_split_size.x = int(new_split_size.x / 2)
+            new_split_size.y = int(new_split_size.y / 2)
 
         else:
 

@@ -1,0 +1,113 @@
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:34:56
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 102, in <module>
+    _putPathPrepends()
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 79, in _putPathPrepends
+    f = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid mode: 'rU'
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:39:19
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 102, in <module>
+    _putPathPrepends()
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 79, in _putPathPrepends
+    f = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid mode: 'rU'
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:40:26
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 102, in <module>
+    _putPathPrepends()
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 79, in _putPathPrepends
+    f = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid mode: 'rU'
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:40:36
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 102, in <module>
+    _putPathPrepends()
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 79, in _putPathPrepends
+    f = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid mode: 'rU'
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:41:31
+/home/g/repos/WikidPad/WikidPad/lib/pwiki/wxHelper.py:642: SyntaxWarning: invalid escape sequence '\+'
+  winMatch = re.search("(?<![^\+\-])win[\+\-]", keyString, re.IGNORECASE)
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 112, in <module>
+    from pwiki.MainApp import App, findDirs
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/MainApp.py", line 31, in <module>
+    from .CmdLineAction import CmdLineAction
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/CmdLineAction.py", line 9, in <module>
+    from . import PluginManager
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/PluginManager.py", line 3
+    from zipimport importlibort zipimporter
+                   ^^^^^^^^^^^^
+SyntaxError: invalid syntax
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 00:53:12
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 112, in <module>
+    from pwiki.MainApp import App, findDirs
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/MainApp.py", line 31, in <module>
+    from .CmdLineAction import CmdLineAction
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/CmdLineAction.py", line 9, in <module>
+    from . import PluginManager
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/PluginManager.py", line 345
+    	    spec = importlib.util.find_spec(packageName)  
+    ^
+TabError: inconsistent use of tabs and spaces in indentation
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 02:27:35
+Traceback (most recent call last):
+  File "/home/g/repos/WikidPad/WikidPad.py", line 6, in <module>
+    from WikidPad import WikidPadStarter
+  File "/home/g/repos/WikidPad/WikidPad/WikidPadStarter.py", line 112, in <module>
+    from pwiki.MainApp import App, findDirs
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/MainApp.py", line 31, in <module>
+    from .CmdLineAction import CmdLineAction
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/CmdLineAction.py", line 9, in <module>
+    from . import PluginManager
+  File "/home/g/repos/WikidPad/WikidPad/lib/pwiki/PluginManager.py", line 332
+    import importlib
+                    ^
+IndentationError: unindent does not match any outer indentation level
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 03:26:04
+/home/g/repos/WikidPad/WikidPad/lib/pwiki/wxHelper.py:648: SyntaxWarning: invalid escape sequence '\+'
+  winMatch = re.search("(?<![^\+\-])win[\+\-]", keyString, re.IGNORECASE)
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 03:29:03
+/home/g/repos/WikidPad/WikidPad/lib/pwiki/wxHelper.py:648: SyntaxWarning: invalid escape sequence '\+'
+  winMatch = re.search("(?<![^\+\-])win[\+\-]", keyString, re.IGNORECASE)
+
+
+Version: 'wikidPad 2.4alpha01' Session start: 2025-03-04 03:29:56
+/home/g/repos/WikidPad/WikidPad/lib/pwiki/wxHelper.py:648: SyntaxWarning: invalid escape sequence '\+'
+  winMatch = re.search("(?<![^\+\-])win[\+\-]", keyString, re.IGNORECASE)
