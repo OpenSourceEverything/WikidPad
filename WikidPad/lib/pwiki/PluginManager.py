@@ -327,11 +327,14 @@ class PluginManager:
            Files and directories given in exludeFiles are not loaded at all. Also 
            directories are searched in order for plugins. Therefore plugins
            appearing in earlier directories are not loaded from later ones."""
-        import imp
+        import importlib
         exclusions = excludeFiles[:]
         
         for dirNum, directory in enumerate(self.directories):
-            sys.path.append(os.path.dirname(directory))
+            # Ensure the exact plugin directory is in sys.path
+            if directory not in sys.path:
+                sys.path.append(directory)
+            
             if not os.access(mbcsEnc(directory, "replace")[0], os.F_OK):
                 continue
             files = os.listdir(directory)
@@ -339,42 +342,62 @@ class PluginManager:
             if dirNum == self.systemDirIdx:
                 packageName = "wikidpadSystemPlugins"
             else:
-                packageName = "cruelimportExtensionsPackage%i_%i" % \
-                        (id(self), dirNum)
+                packageName = f"cruelimportExtensionsPackage{id(self)}_{dirNum}"
 
-            package = imp.new_module(packageName)
+            # Ensure package is found
+            plugin_path = directory  # Use `directory`, not os.path.dirname(__file__)
+            lib_pwiki_path = os.path.join(os.path.dirname(__file__), "..", "pwiki")
+
+            if lib_pwiki_path not in sys.path:
+                sys.path.append(lib_pwiki_path)  # Add `lib/pwiki/` explicitly
+
+            if plugin_path not in sys.path:
+                sys.path.append(plugin_path)
+
+            print(f"DEBUG: Updated sys.path = {sys.path}")  # Debugging
+
+            spec = importlib.util.find_spec(packageName)
+            if spec is None:
+                print(f"DEBUG: Could not find {packageName}. sys.path: {sys.path}")  # Debugging
+                raise ImportError(f"Could not find spec for {packageName}")
+
+            package = importlib.util.module_from_spec(spec)
             package.__path__ = [directory]
             sys.modules[packageName] = package
 
+            # Load plugin files
             for name in files:
                 try:
-                    module = None
                     fullname = os.path.join(directory, name)
-                    ( moduleName, ext ) = os.path.splitext(name)
-                    if name in exclusions:
+                    moduleName, ext = os.path.splitext(name)
+                    if name in exclusions or not os.path.isfile(fullname):
                         continue
-                    if os.path.isfile(fullname):
-                        if ext == '.py':
-                            with open(fullname, "rb") as f:
-                                module = imp.load_module(packageName + "." + moduleName, f,
-                                        fullname, (".py", "r", imp.PY_SOURCE))
-                        elif ext == '.zip':
-                            module = imp.new_module(
-                                    packageName + "." + moduleName)
-                            module.__path__ = [fullname]
-                            module.__zippath__ = fullname
-                            sys.modules[packageName + "." + moduleName] = module
-                            zi = zipimporter(fullname)
-                            co = zi.get_code("__init__")
-                            exec(co, module.__dict__)
+
+                    if ext == ".py":
+                        spec = importlib.util.spec_from_file_location(f"{packageName}.{moduleName}", fullname)
+                        module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(module)  # Ensure execution
+
+                    elif ext == ".zip":
+                        module = importlib.util.module_from_spec(f"{packageName}.{moduleName}")
+                        module.__path__ = [fullname]
+                        module.__zippath__ = fullname
+                        sys.modules[f"{packageName}.{moduleName}"] = module
+                        zi = zipimporter(fullname)
+                        co = zi.get_code("__init__")
+                        exec(co, module.__dict__)
 
                     if module:
                         setattr(package, moduleName, module)
                         if hasattr(module, "WIKIDPAD_PLUGIN"):
                             self.registerPlugin(module)
-                except:
+
+                except Exception:
                     traceback.print_exc()
-            del sys.path[-1]
+
+            # Remove from sys.path after processing
+            if directory in sys.path:
+                sys.path.remove(directory)
             
     def loadPluginsPackageManaged(self):
         import pkg_resources
@@ -416,9 +439,9 @@ class PluginManager:
 # 
 #         Returns a newly generated module.
 #         """
-#         import imp
+#         import importlib
 # 
-#         module = imp.new_module(name)
+#         module = importlib.util.module_from_spec(name)
 # 
 #         exec code in module.__dict__
 #         if add_to_sys_modules:

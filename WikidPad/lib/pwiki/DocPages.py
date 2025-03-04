@@ -1280,7 +1280,7 @@ class WikiPage(AbstractWikiPage):
         # Prefix is normally u"++"
 #         pageTitlePrefix = \
 #                 self.getWikiDocument().getPageTitlePrefix() + u" "
-
+        print("changeHeadingForTemplate - begin")
         content = templatePage.getContent()
         templatePage = templatePage.getNonAliasPage()
         wikiDoc = self.getWikiDocument()

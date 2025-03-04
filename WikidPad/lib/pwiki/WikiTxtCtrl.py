@@ -1764,13 +1764,11 @@ class WikiTxtCtrl(SearchableScintillaControl):
 #         self.pageAst = None
 
 
-    def stopStcStyler(self):
-        """
-        Stops further styling requests from Scintilla until text is modified
-        """
-        self.StartStyling(self.GetLength(), 0xff)
-        self.SetStyling(0, 0)
 
+    def stopStcStyler(self):
+        "Stops styling until text changes"
+        self.StartStyling(self.GetLength())
+        self.SetStyling(0, 0)
 
 
     def storeStylingAndAst(self, stylebytes, foldingseq, styleMask=0xff):
@@ -2110,7 +2108,7 @@ class WikiTxtCtrl(SearchableScintillaControl):
 
     def applyStyling(self, stylebytes, styleMask=0xff):
         if len(stylebytes) == self.GetLength():
-            self.StartStyling(0, styleMask)
+            self.StartStyling(0)
             self.SetStyleBytes(len(stylebytes), stylebytes)
 
     def applyFolding(self, foldingseq):

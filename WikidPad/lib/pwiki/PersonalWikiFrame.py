@@ -120,13 +120,16 @@ class PersonalWikiFrame(wx.Frame, MiscEventSourceMixin):
     HOTKEY_ID_HIDESHOW_BYAPP = 1
     HOTKEY_ID_HIDESHOW_BYWIKI = 2
 
-##     @profile
+    def OnClose(self, event):
+        # cleanup if needed
+        self.Destroy()
+
     def __init__(self, parent, id, title, wikiAppDir, globalConfigDir,
-            globalConfigSubDir, cmdLineAction):
+                 globalConfigSubDir, cmdLineAction):
         # Do not use member variables starting with "externalPlugin_"! They
         # are reserved for external plugins.
-        wx.Frame.__init__(self, parent, -1, title, size = (700, 550),
-                         style=wx.DEFAULT_FRAME_STYLE|wx.NO_FULL_REPAINT_ON_RESIZE)
+        wx.Frame.__init__(self, parent, -1, title, size=(700, 550),
+                          style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
         MiscEventSourceMixin.__init__(self)
 
         if cmdLineAction.cmdLineError:
@@ -2922,7 +2925,7 @@ camelCaseWordsEnabled: false;a=[camelCaseWordsEnabled: false]\\n
             self.displayErrorMessage(
                     _('No data handler available to create database.'))
             return
-
+        
         wikiName = wikiName.replace(" ", "")
         wikiDir = os.path.join(wikiDir, wikiName)
         configFileLoc = os.path.join(wikiDir, "%s.wiki" % wikiName)
@@ -4673,6 +4676,7 @@ camelCaseWordsEnabled: false;a=[camelCaseWordsEnabled: false]\\n
                 break
 
             if newWord:
+                print("PersonalWikiFrame::showReplaceTextByWikiwordDialog")
                 page = self.wikiDocument.createWikiPage(validWikiWord)
                 # TODO Respect template attribute?
                 title = self.wikiDocument.getWikiPageTitle(validWikiWord)
@@ -5968,9 +5972,9 @@ def importCode(code, usercode, userUserCode, name, add_to_sys_modules=False):
 
     Returns a newly generated module.
     """
-    import sys,imp
+    import sys,importlib,types
 
-    module = imp.new_module(name)
+    module = types.ModuleType(name)
 
     exec(code, module.__dict__)
     if usercode is not None:
