@@ -373,7 +373,7 @@ def writeEntireFile(filename, content, textMode=False,
     appropriate for the OS.
     """
     if writeFileMode == WRITE_FILE_MODE_OVERWRITE:
-        f = open(filename, "wb")
+        f = open(pathEnc(filename), "wb")
 
         try:
             if isinstance(content, str):
@@ -431,12 +431,12 @@ def writeEntireFile(filename, content, textMode=False,
     
         tempPath = TempFileSet.createTempFile(content, suffix=suffix, path=basePath,
                 textMode=textMode)
-    
+
         # TODO: What if unlink or rename fails?
-        if os.path.exists(filename):
-            os.unlink(filename)
-    
-        os.rename(tempPath, filename)
+        if os.path.exists(pathEnc(filename)):
+            os.unlink(pathEnc(filename))
+
+        os.rename(pathEnc(tempPath), pathEnc(filename))
 
 
 
