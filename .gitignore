@@ -6,7 +6,8 @@
 /user_extensions
 
 
-
+# lock files
+*.lock
 
 # Byte-compiled / optimized
 __pycache__/
@@ -52,3 +53,4 @@ docs/_build/
 .eggs
 WikidPad/WikidPadHelp/WikidPadHelp.wiki.lock
 WikidPad/WikidPadHelp/data/wikiovw.sli-journal
+WikidPad/lib/aui/tabart.py.lock
