@@ -3964,7 +3964,7 @@ class AuiNotebook(wx.Panel):
 
         # update our own tab catalog
         page_info = self._tabs.GetPage(page_idx)
-        should_refresh = page_info.bitmap is not bitmap
+        should_refresh = page_info.bitmap != bitmap
         page_info.bitmap = bitmap
         if bitmap.IsOk() and not page_info.dis_bitmap.IsOk():
             page_info.dis_bitmap = MakeDisabledBitmap(bitmap)
@@ -3978,7 +3978,7 @@ class AuiNotebook(wx.Panel):
             return False
 
         info = ctrl.GetPage(ctrl_idx)
-        should_refresh = should_refresh or info.bitmap is not bitmap
+        should_refresh = should_refresh or info.bitmap != bitmap
         info.bitmap = bitmap
         info.dis_bitmap = page_info.dis_bitmap
         if should_refresh:
@@ -4021,6 +4021,13 @@ class AuiNotebook(wx.Panel):
         # update our own tab catalog
         page_info = self._tabs.GetPage(page_idx)
         page_info.tooltip = tooltip
+
+        # update what's on screen
+        ctrl, ctrl_idx = self.FindTab(page_info.window)
+        if ctrl:
+            info = ctrl.GetPage(ctrl_idx)
+            info.tooltip = tooltip
+
         return True
 
 
