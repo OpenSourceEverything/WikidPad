@@ -29,7 +29,7 @@ wikidpad_dir = os.path.abspath('.')
 sys.path.append(wikidpad_dir)
 sys.path.append(os.path.join(wikidpad_dir, 'lib'))
 
-from tests.helper import MockWikiDocument, get_text, TESTS_DIR
+from .helper import MockWikiDocument, get_text, TESTS_DIR
 from Consts import ModifyText
 
 

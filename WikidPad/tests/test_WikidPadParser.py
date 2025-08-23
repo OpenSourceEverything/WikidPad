@@ -38,7 +38,7 @@ wikidpad_dir = os.path.abspath('.')
 sys.path.append(wikidpad_dir)
 sys.path.append(os.path.join(wikidpad_dir, 'lib'))
 
-from tests.helper import (
+from .helper import (
     TESTS_DIR, get_text, parse, MockWikiDocument, getApp,
     WikiWordNotFoundException, NodeFinder, ast_eq)
 
