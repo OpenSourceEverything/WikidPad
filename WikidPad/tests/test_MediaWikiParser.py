@@ -15,7 +15,7 @@ wikidpad_dir = os.path.abspath('.')
 sys.path.append(os.path.join(wikidpad_dir, 'lib'))
 sys.path.append(wikidpad_dir)
 
-from tests.helper import MockWikiDocument, NodeFinder, getApp
+from .helper import MockWikiDocument, NodeFinder, getApp
 
 
 LANGUAGE_NAME = 'mediawiki_1'

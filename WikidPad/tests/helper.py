@@ -16,15 +16,70 @@ import os
 import re
 import sys
 import imp
-import wx
 
-# Create a dummy app.
-dummyApp = wx.App(0)
-dummyApp.SetAppName("WikidPad")
+try:
+    import wx
+
+    # Create a dummy app.
+    dummyApp = wx.App(0)
+    dummyApp.SetAppName("WikidPad")
+    if not hasattr(wx, "NO_3D"):  # cmore addition
+        wx.NO_3D = 0
+except ModuleNotFoundError:  # pragma: no cover - environment without wx
+    import types
+
+    class _DummyApp:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def SetAppName(self, *args, **kwargs):
+            pass
+
+        def IsMainLoopRunning(self):
+            return False
+
+    wx = types.ModuleType("wx")
+    wx.App = _DummyApp
+    wx.NO_3D = 0
+    wx.OS_WINDOWS_NT = 2
+    wx.OS_WINDOWS_9X = 1
+    wx.PlatformInfo = ()
+
+    wx.IsMainThread = staticmethod(lambda: True)
+    wx.GetApp = staticmethod(lambda: _DummyApp())
+    wx.CallAfter = staticmethod(lambda f, *a, **k: f(*a, **k))
+    wx.GetOsVersion = staticmethod(lambda: (0, 0))
+    wx.PostEvent = staticmethod(lambda *a, **k: None)
+
+    xrc = types.ModuleType("wx.xrc")
+    xrc.XRCCTRL = staticmethod(lambda *a, **k: None)
+    xrc.XRCID = staticmethod(lambda *a, **k: 0)
+
+    class XmlResource:
+        def __init__(self, *a, **k):
+            pass
+
+    class XmlSubclassFactory:
+        def __init__(self, *a, **k):
+            pass
+
+    xrc.XmlResource = XmlResource
+    xrc.XmlSubclassFactory = XmlSubclassFactory
+
+    siplib = types.ModuleType("wx.siplib")
+    siplib.unwrapinstance = staticmethod(lambda *a, **k: None)
+
+    wx.xrc = xrc
+    wx.siplib = siplib
+
+    sys.modules.setdefault("wx", wx)
+    sys.modules.setdefault("wx.xrc", xrc)
+    sys.modules.setdefault("wx.siplib", siplib)
+
+    dummyApp = wx.App()
+    dummyApp.SetAppName("WikidPad")
 
 builtins._ = builtins.N_ = lambda s: s  # see WikidPadStarter
-if not hasattr(wx, "NO_3D"):  # cmore addition
-    wx.NO_3D = 0
 
 # run test from WikidPad directory, fix path
 # todo (pvh): ? fix imports in WikidPad, turn it into a package
