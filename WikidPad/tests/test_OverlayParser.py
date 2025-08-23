@@ -15,7 +15,7 @@ wikidpad_dir = os.path.abspath('.')
 sys.path.append(os.path.join(wikidpad_dir, 'lib'))
 sys.path.append(wikidpad_dir)
 
-from tests.helper import MockWikiDocument, getApp, parse, NodeFinder
+from .helper import MockWikiDocument, getApp, parse, NodeFinder
 
 
 LANGUAGE_NAME = 'wikidpad_overlaid_2_0'
