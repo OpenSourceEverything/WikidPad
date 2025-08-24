@@ -373,7 +373,7 @@ def writeEntireFile(filename, content, textMode=False,
     appropriate for the OS.
     """
     if writeFileMode == WRITE_FILE_MODE_OVERWRITE:
-        f = open(filename, "wb")
+        f = open(pathEnc(filename), "wb")
 
         try:
             if isinstance(content, str):
@@ -431,12 +431,12 @@ def writeEntireFile(filename, content, textMode=False,
     
         tempPath = TempFileSet.createTempFile(content, suffix=suffix, path=basePath,
                 textMode=textMode)
-    
+
         # TODO: What if unlink or rename fails?
-        if os.path.exists(filename):
-            os.unlink(filename)
-    
-        os.rename(tempPath, filename)
+        if os.path.exists(pathEnc(filename)):
+            os.unlink(pathEnc(filename))
+
+        os.rename(pathEnc(tempPath), pathEnc(filename))
 
 
 
@@ -833,11 +833,21 @@ def unescapeForIni(text):
 #     return text.replace(u"\\", u"\\\\").replace("\n", "\\n").\
 #             replace("\r", "\\r")
 
+_UNESCAPE_RE = _re.compile(r"\\(\\|n|r|t|f)")
+
+def _unescape_repl(match):
+    c = match.group(1)
+    return {"n": "\n", "r": "\r", "t": "\t", "f": "\f", "\\": "\\"}[c]
+
 def unescapeWithRe(text):
     """
     Unescape things like \n or \f. Throws exception if unescaping fails
     """
-    return _re.sub("", text, "", 1)
+    res = _UNESCAPE_RE.sub(_unescape_repl, text)
+    if "\\" in res:
+        # remaining backslash means invalid escape sequence
+        raise ValueError("invalid escape sequence in '%s'" % text)
+    return res
 
 
 def re_sub_escape(pattern):

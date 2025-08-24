@@ -722,8 +722,10 @@ class WikiDocument(MiscEventSourceMixin):
         Return the default prefix for a wiki page main title.
         By default, it is "++ "
         """
-        return unescapeWithRe(self.getWikiConfig().get(
-                "main", "wikiPageTitlePrefix", "++"))
+        prefix = self.getWikiConfig().get(
+            "main", "wikiPageTitlePrefix", "++")
+        print(f"Retrieved wikiPageTitlePrefix: {prefix}")  # Debug log
+        return unescapeWithRe(prefix)
 
     def getWikiTempDir(self):
 #         if GetApp().getGlobalConfig().getboolean("main", "tempFiles_inWikiDir",
@@ -1140,6 +1142,7 @@ class WikiDocument(MiscEventSourceMixin):
                 (without syntax specific prefix).
         """
         with self.pageRetrievingLock:
+            print(f"createWikiPage called with wikiWord: {wikiWord}, suggNewPageTitle: {suggNewPageTitle}")
             page = self.getWikiPageNoError(wikiWord)
             page.setSuggNewPageTitle(suggNewPageTitle)
             return page

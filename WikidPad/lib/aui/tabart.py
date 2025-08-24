@@ -472,7 +472,7 @@ class AuiDefaultTabArt:
             dc.DrawPoint(r.x+r.width-2, r.y+1)
 
             # set rectangle down a bit for gradient drawing
-            r.SetHeight(r.GetHeight()/2)
+            r.SetHeight(int(r.GetHeight()/2))
             r.x += 2
             r.width -= 2
             r.y += r.height
@@ -487,7 +487,7 @@ class AuiDefaultTabArt:
 
             # draw inactive tab
 
-            r = wx.Rect(tab_x, tab_y+1, tab_width, tab_height-3)
+            r = wx.Rect(int(tab_x), int(tab_y+1), int(tab_width), int(tab_height-3))
 
             # start the gradent up a bit and leave the inside border inset
             # by a pixel for a 3D look.  Only the top half of the inactive
@@ -495,7 +495,7 @@ class AuiDefaultTabArt:
             r.x += 3
             r.y += 1
             r.width -= 4
-            r.height /= 2
+            r.height = int(r.height / 2)
             r.height -= 1
 
             # -- draw top gradient fill for glossy look
@@ -586,7 +586,7 @@ class AuiDefaultTabArt:
 
         # draw tab text
         rectx, recty, dummy = dc.GetFullMultiLineTextExtent(draw_text)
-        dc.DrawLabel(draw_text, wx.Rect(text_offset, ypos, rectx, recty))
+        dc.DrawLabel(draw_text, wx.Rect(int(text_offset), int(ypos), int(rectx), int(recty)))
 
         # draw focus rectangle
         if (agwFlags & AUI_NB_NO_TAB_FOCUS) == 0:
@@ -610,9 +610,9 @@ class AuiDefaultTabArt:
                 rect = wx.Rect(tab_x + 4, tab_y + (tab_height - bmp.GetHeight())/2 - shift,
                                close_button_width, tab_height)
             else:
-                rect = wx.Rect(tab_x + tab_width - close_button_width - 1,
-                               tab_y + (tab_height - bmp.GetHeight())/2 - shift,
-                               close_button_width, tab_height)
+                rect = wx.Rect(int(tab_x + tab_width - close_button_width - 1),
+                               int(tab_y + (tab_height - bmp.GetHeight())/2 - shift),
+                               int(close_button_width), int(tab_height))
 
             rect = IndentPressedBitmap(rect, close_button_state)
             dc.DrawBitmap(bmp, rect.x, rect.y, True)
@@ -817,8 +817,10 @@ class AuiDefaultTabArt:
 
         if page.active and wx.Window.FindFocus() == wnd:
 
-            focusRectText = wx.Rect(text_offset, (drawn_tab_yoff + (drawn_tab_height)/2 - (texty/2)),
-                                    textx, texty)
+            focusRectText = wx.Rect(int(text_offset), 
+                                    int(drawn_tab_yoff + (drawn_tab_height)/2 - (texty/2)),
+                                    int(textx), 
+                                    int(texty))
 
             if page.bitmap.IsOk():
                 focusRectBitmap = wx.Rect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
@@ -2764,7 +2766,7 @@ class ChromeTabArt(AuiDefaultTabArt):
 
         # draw tab text
         rectx, recty, dummy = dc.GetFullMultiLineTextExtent(draw_text)
-        dc.DrawLabel(draw_text, wx.Rect(text_offset, ypos, rectx, recty))
+        dc.DrawLabel(draw_text, wx.Rect(int(text_offset), int(ypos), int(rectx), int(recty)))
 
         out_button_rect = wx.Rect()
         # draw 'x' on tab (if enabled)
