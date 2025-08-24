@@ -20,13 +20,27 @@ from . import SystemInfo, StringOps
 #     gobject = None
 
 
+_UNESCAPE_RE = re.compile(r"\\(\\|n|r|t|f)")
+
+def _unescape_repl(match):
+    c = match.group(1)
+    return {"n": "\n", "r": "\r", "t": "\t", "f": "\f", "\\": "\\"}[c]
+
 def _unescapeWithRe(text):
     """
     Unescape things like \n or \f. Throws exception if unescaping fails
     """
-    return re.sub("", text, "", 1)
+    res = _UNESCAPE_RE.sub(_unescape_repl, text)
+    if "\\" in res:
+        raise ValueError("invalid escape sequence in '%s'" % text)
+    return res
 
-
+def generate_logical_id():
+    ver = wx.VERSION
+    if ver[0] < 4:
+        return wx.NewId()
+    else:
+        return int(wx.NewIdRef())
 
 class wxSourceId:
     """
@@ -63,14 +77,15 @@ class wxIdPool:
         """
         try:
             if name not in self._xrcPoolcache:
-                self._xrcPoolcache[name] = wxSourceId(XRCID(name))
+               self._xrcPoolcache[name] = int(XRCID(name))
                 
             return self._xrcPoolcache[name]
         except:
             try:
                 return self._poolmap[name]
             except KeyError:
-                id = wxSourceId(wx.NewId())
+                #id = wxSourceId(wx.NewId())
+                id = generate_logical_id()
                 self._poolmap[name] = id
                 return id
                 

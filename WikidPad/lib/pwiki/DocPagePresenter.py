@@ -264,6 +264,11 @@ class BasicDocPagePresenter(LayeredControlPresenter):
 #                         wikiWord), 0)
 
             except (WikiWordNotFoundException, WikiFileNotFoundException) as e:
+                print("openWikiPage calling createWikiPage")
+
+                print(f"openWikiPage called with wikiWord: '{wikiWord}'")
+                print(f"suggNewPageTitle: '{suggNewPageTitle}'")
+
                 page = wikiDoc.createWikiPage(wikiWord,
                         suggNewPageTitle=suggNewPageTitle)
                 # trigger hooks
@@ -288,6 +293,7 @@ class BasicDocPagePresenter(LayeredControlPresenter):
 
 
     def loadWikiPage(self, page, **evtprops):
+        print("loadWikiPage - begin")
         oldPage = self.getDocPage()  # TODO Test if too late to retrieve old page here
 
         self.getSubControl("textedit").loadWikiPage(page, evtprops)

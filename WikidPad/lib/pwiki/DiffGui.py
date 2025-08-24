@@ -467,16 +467,14 @@ class InlineDiffControl(SearchableScintillaControl):
 
 
     def stopStcStyler(self):
-        """
-        Stops further styling requests from Scintilla until text is modified
-        """
-        self.StartStyling(self.GetLength(), 0xff)
+        "Stops styling until text changes"
+        self.StartStyling(self.GetLength())
         self.SetStyling(0, 0)
 
 
     def applyStyling(self, stylebytes, styleMask=0xff):
         if len(stylebytes) == self.GetLength():
-            self.StartStyling(0, styleMask)
+            self.StartStyling(0)
             self.SetStyleBytes(len(stylebytes), stylebytes)
 
 

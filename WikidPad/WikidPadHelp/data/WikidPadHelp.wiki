@@ -2,6 +2,8 @@
 
 *Description*
 
+TestPage
+
 wikidPad is a wiki-like notebook for storing your thoughts, ideas,
 todo lists, contacts or anything else you can think of that's
 important.  What makes wikidPad different from other notepad or
