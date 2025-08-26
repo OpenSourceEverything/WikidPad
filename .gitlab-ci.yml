@@ -1,0 +1,10 @@
+gui:
+  image: mcr.microsoft.com/playwright/python:latest
+  stage: test
+  script:
+    - bash scripts/ci_install.sh
+    - bash scripts/ci_test_gui.sh
+  artifacts:
+    when: always
+    paths:
+      - artifacts/
