@@ -1,0 +1,53 @@
+name: gui-matrix
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: sys deps
+        run: |
+          sudo apt-get update
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+            sudo apt-get install -y python3.10 python3.10-venv \
+              xvfb libgtk-3-0 libgl1 libnotify4 libsm6 libxrender1 \
+              libxext6 libxtst6 libgstreamer1.0-0 \
+              libgstreamer-plugins-base1.0-0 libsdl2-2.0-0 \
+              libjpeg-turbo8 libpcre2-32-0
+          else
+            sudo apt-get install -y python3.12-venv python3-wxgtk4.0 \
+              xvfb libgtk-3-0 libgl1 libnotify4 libsm6 libxrender1 \
+              libxext6 libxtst6 libgstreamer1.0-0 \
+              libgstreamer-plugins-base1.0-0 libsdl2-2.0-0 \
+              libjpeg-turbo8
+          fi
+      - name: venv + deps
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then py=python3.10; \
+          else py=python3; fi
+          $py -m venv --system-site-packages .venv
+          . .venv/bin/activate
+          python -m pip install -U pip wheel
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+            URL="https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04"
+            pip install -f "$URL" wxPython==4.2.1
+          fi
+          test -f requirements.txt && pip install -r requirements.txt || true
+          python - <<'PY'
+import sys, wx
+print(sys.version)
+print("wx", wx.VERSION_STRING)
+PY
+      - name: test
+        run: |
+          . .venv/bin/activate
+          bash scripts/ci_test_gui.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: artifacts-${{ matrix.os }}
+          path: artifacts

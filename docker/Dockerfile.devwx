@@ -1,0 +1,13 @@
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+  python3.10 python3-pip python3.10-venv \
+  xvfb libgtk-3-0 libgl1 libnotify4 libsm6 libxrender1 libxext6 \
+  libxtst6 libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
+  libsdl2-2.0-0 libjpeg-turbo8 libpcre2-32-0 ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /work
+RUN python3.10 -m pip install -U pip wheel
+RUN URL="https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04" \
+ && python3.10 -m pip install -f "$URL" wxPython==4.2.1
+CMD ["/bin/bash"]
