@@ -5,6 +5,10 @@
 *.pyc
 /user_extensions
 
+# Virtual environment and local artifacts
+.venv/
+artifacts/
+.env
 
 # lock files
 *.lock

@@ -82,9 +82,9 @@ except ModuleNotFoundError:  # pragma: no cover - environment without wx
 
 builtins._ = builtins.N_ = lambda s: s  # see WikidPadStarter
 
-# run test from WikidPad directory, fix path
-# todo (pvh): ? fix imports in WikidPad, turn it into a package
-wikidpad_dir = os.path.abspath('.')
+# Ensure imports work when running tests from repository root
+_this_dir = os.path.dirname(__file__)
+wikidpad_dir = os.path.abspath(os.path.join(_this_dir, '..'))
 sys.path.append(wikidpad_dir)
 sys.path.append(os.path.join(wikidpad_dir, 'lib'))
 
@@ -101,14 +101,12 @@ from pwiki.StringOps import LOWERCASE, UPPERCASE
 from wikidPadParser import WikidPadParser
 from mediaWikiParser import MediaWikiParser
 
-OverlayParser = importlib.util.spec_from_file_location('OverlayParser', os.path.join(EXTENSIONDIR,
-        "OverlayParser.pyf"))
-
-# import OverlayParser
+_ov_path = os.path.join(EXTENSIONDIR, "OverlayParser.pyf")
+OverlayParser = importlib.machinery.SourceFileLoader("OverlayParser", _ov_path).load_module()
 
 from Consts import ModifyText
 
-TESTS_DIR = os.path.abspath('tests/')
+TESTS_DIR = _this_dir
 PARSER_MODULES = [WikidPadParser, MediaWikiParser, OverlayParser]
 
 DEFAULT_WIKI_LANGUAGE = 'wikidpad_default_2_0'

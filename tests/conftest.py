@@ -1,7 +1,13 @@
 import pathlib
 import time
-import wx
+import importlib
+import sys
+import wx  # type: ignore
 import pytest
+
+if not hasattr(wx, "Frame"):
+    sys.modules.pop("wx", None)
+    wx = importlib.import_module("wx")
 
 
 @pytest.fixture(scope="session", autouse=True)
