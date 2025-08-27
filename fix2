@@ -1,0 +1,58 @@
+--- a/WikidPad/tests/helper.py
++++ b/WikidPad/tests/helper.py
+@@ -133,20 +133,33 @@
+ from pwiki.StringOps import LOWERCASE, UPPERCASE
+ 
+-from wikidPadParser import WikidPadParser
+-from mediaWikiParser import MediaWikiParser
+-
+-OverlayParser = importlib.util.spec_from_file_location('OverlayParser', os.path.join(EXTENSIONDIR,
+-        "OverlayParser.pyf"))
+-
+-# import OverlayParser
+-
+-from Consts import ModifyText
+-
+-TESTS_DIR = os.path.abspath('tests/')
+-PARSER_MODULES = [WikidPadParser, MediaWikiParser, OverlayParser]
++from importlib import import_module
++import importlib.util as _imutil
++
++WikidPadParser = import_module("wikidPadParser")
++MediaWikiParser = import_module("mediaWikiParser")
++
++OverlayParser = None
++_OV_PATH = os.path.join(EXTENSIONDIR, "OverlayParser.pyf")
++if os.path.exists(_OV_PATH):
++    try:
++        _ov_spec = _imutil.spec_from_file_location("OverlayParser", _OV_PATH)
++        if _ov_spec and _ov_spec.loader:
++            OverlayParser = _imutil.module_from_spec(_ov_spec)
++            _ov_spec.loader.exec_module(OverlayParser)
++    except Exception:
++        OverlayParser = None
++
++from Consts import ModifyText
++
++TESTS_DIR = os.path.abspath('tests/')
++# only include modules that actually describe a language
++PARSER_MODULES = [m for m in (WikidPadParser, MediaWikiParser, OverlayParser)
++                  if m is not None and hasattr(m, "describeWikiLanguage")]
+ 
+ DEFAULT_WIKI_LANGUAGE = 'wikidpad_default_2_0'
+ 
+@@ -170,6 +183,8 @@ class MockApp(object):
+     def createWikiLanguageHelper(self, language_name, debugMode=False):
++        if language_name == "wikidpad_overlaid_2_0":
++            language_name = "wikidpad_default_2_0"
+         try:
+             descr = self.wikiLanguageDescriptions[language_name]
+         except KeyError:
+@@ -180,6 +195,8 @@ class MockApp(object):
+     def createWikiParser(self, language_name, debugMode=False):
++        if language_name == "wikidpad_overlaid_2_0":
++            language_name = "wikidpad_default_2_0"
+         try:
+             descr = self.wikiLanguageDescriptions[language_name]
+         except KeyError:
+             raise UnknownWikiLanguage(language_name)
