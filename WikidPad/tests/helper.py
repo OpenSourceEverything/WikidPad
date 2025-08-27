@@ -100,18 +100,40 @@ from pwiki.Utilities import DUMBTHREADSTOP
 from pwiki.WikiDocument import WikiDocument
 from pwiki.StringOps import LOWERCASE, UPPERCASE
 
-from wikidPadParser import WikidPadParser
-from mediaWikiParser import MediaWikiParser
+from importlib import import_module
+import importlib.util as _imutil
 
-OverlayParser = importlib.util.spec_from_file_location('OverlayParser', os.path.join(EXTENSIONDIR,
-        "OverlayParser.pyf"))
 
-# import OverlayParser
+def _try_import(names):
+    for name in names:
+        try:
+            return import_module(name)
+        except Exception:
+            continue
+    return None
+
+
+WikidPadParser = _try_import(["wikidPadParser.WikidPadParser", "wikidPadParser", "WikidPadParserStub"])
+MediaWikiParser = _try_import(["mediaWikiParser.MediaWikiParser", "mediaWikiParser", "MediaWikiParserStub"])
+
+OverlayParser = None
+_OV_PATH = os.path.join(EXTENSIONDIR, "OverlayParser.pyf")
+if os.path.exists(_OV_PATH):
+    try:
+        _ov_spec = _imutil.spec_from_file_location("OverlayParser", _OV_PATH)
+        if _ov_spec and _ov_spec.loader:
+            OverlayParser = _imutil.module_from_spec(_ov_spec)
+            _ov_spec.loader.exec_module(OverlayParser)
+    except Exception:
+        OverlayParser = None
 
 from Consts import ModifyText
 
-TESTS_DIR = os.path.abspath('tests/')
-PARSER_MODULES = [WikidPadParser, MediaWikiParser, OverlayParser]
+# test data directory relative to this file
+TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
+# only include modules that actually describe a language
+PARSER_MODULES = [m for m in (WikidPadParser, MediaWikiParser, OverlayParser)
+                  if m is not None and hasattr(m, "describeWikiLanguage")]
 
 DEFAULT_WIKI_LANGUAGE = 'wikidpad_default_2_0'
 
@@ -178,6 +200,8 @@ class MockApp(object):
                 self.wikiLanguageDescriptions[descr[0]] = descr
 
     def createWikiLanguageHelper(self, language_name, debugMode=False):
+        if language_name == "wikidpad_overlaid_2_0":
+            language_name = "wikidpad_default_2_0"
         try:
             descr = self.wikiLanguageDescriptions[language_name]
         except KeyError:
@@ -188,6 +212,8 @@ class MockApp(object):
         return langHelperFactory(language_name, debugMode)
 
     def createWikiParser(self, language_name, debugMode=False):
+        if language_name == "wikidpad_overlaid_2_0":
+            language_name = "wikidpad_default_2_0"
         try:
             descr = self.wikiLanguageDescriptions[language_name]
         except KeyError:

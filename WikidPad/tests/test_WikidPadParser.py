@@ -296,7 +296,7 @@ def test_WikiLinkPath_init():
             assert res.components == components, left_to_right_err_msg_2()
         else:
             exc = type(upwardCount)
-            with pytest.raises(exc, message=left_to_right_err_msg_3()):
+            with pytest.raises(exc):
                 WikiLinkPath(linkCore=linkCore)
 
     def right_to_left_err_msg_1():
@@ -313,7 +313,7 @@ def test_WikiLinkPath_init():
             assert res == linkCore, right_to_left_err_msg_1()
         else:
             exc = type(linkCore)
-            with pytest.raises(exc, message=right_to_left_err_msg_2()):
+            with pytest.raises(exc):
                 WikiLinkPath(upwardCount=upwardCount, components=components)
 
 
@@ -505,7 +505,7 @@ def test_WikiLinkPath_join():
             assert res == joinedPath, err_msg_1()
         else:
             exc = type(joinedLinkCore)
-            with pytest.raises(exc, message=err_msg_2()):
+            with pytest.raises(exc):
                 linkPath.joinTo(otherLinkPath)
 
 
@@ -571,7 +571,7 @@ def test_WikiLinkPath_getRelativePathByAbsPaths():
             assert res == linkCore, err_msg_1()
         else:
             exc = type(linkCore)
-            with pytest.raises(exc, message=err_msg_2()):
+            with pytest.raises(exc):
                 WikiLinkPath.getRelativePathByAbsPaths(target, base,
                                                        downwardOnly=False)
 
@@ -715,9 +715,9 @@ def test_WikiLink_resolve_and_create():
             assert res == targetPageName, left_to_right_err_msg_1(2)
         else:
             exc = type(targetPageName)
-            with pytest.raises(exc, message=left_to_right_err_msg_2(1)):
+            with pytest.raises(exc):
                 res = resolve_v1(linkCore, basePageName)
-            with pytest.raises(exc, message=left_to_right_err_msg_2(2)):
+            with pytest.raises(exc):
                 resolve_v2(linkCore, basePageName)
 
     # <-
@@ -753,9 +753,9 @@ def test_WikiLink_resolve_and_create():
             assert res == linkCore, right_to_left_err_msg_1(2)
         else:
             exc = type(linkCore)
-            with pytest.raises(exc, message=right_to_left_err_msg_2(1)):
+            with pytest.raises(exc):
                 create_v1(targetPageName, basePageName, False)
-            with pytest.raises(exc, message=right_to_left_err_msg_2(2)):
+            with pytest.raises(exc):
                 create_v2(targetPageName, basePageName, False)
 
 
