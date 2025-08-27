@@ -1,0 +1,116 @@
+diff --git a/.github/workflows/gui.yml b/.github/workflows/gui.yml
+index 8a60419..ef7f7e2 100644
+--- a/.github/workflows/gui.yml
++++ b/.github/workflows/gui.yml
+@@ -2,17 +2,18 @@ name: gui
+ on: [push, pull_request]
+ jobs:
+   wx:
+-    runs-on: ubuntu-latest
++    runs-on: ubuntu-22.04
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+         with:
+           python-version: '3.10'
+           cache: 'pip'
+-      - run: bash scripts/ci_install.sh
+-      - run: bash scripts/ci_test_gui.sh
++      - run: make init
++      - run: make test
+       - uses: actions/upload-artifact@v4
+         if: always()
+         with:
+           name: test-artifacts
+           path: artifacts
++
+diff --git a/.gitignore b/.gitignore
+index 5670168..e2355f1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -16,6 +16,7 @@ __pycache__/
+ # Distribution / packaging
+ .Python
+ env/
++.venv/
+ build/
+ develop-eggs/
+ dist/
+diff --git a/WikidPad/tests/helper.py b/WikidPad/tests/helper.py
+index 84423dd..61a49b3 100644
+--- a/WikidPad/tests/helper.py
++++ b/WikidPad/tests/helper.py
+@@ -82,14 +82,16 @@ except ModuleNotFoundError:  # pragma: no cover - environment without wx
+ 
+ builtins._ = builtins.N_ = lambda s: s  # see WikidPadStarter
+ 
+-# run test from WikidPad directory, fix path
+-# todo (pvh): ? fix imports in WikidPad, turn it into a package
+-wikidpad_dir = os.path.abspath('.')
+-sys.path.append(wikidpad_dir)
+-sys.path.append(os.path.join(wikidpad_dir, 'lib'))
+-
+-EXTENSIONDIR = os.path.join(wikidpad_dir, 'extensions')
+-sys.path.append(EXTENSIONDIR)
++# resolve paths relative to the repo root, and add package/lib to PYTHONPATH
++REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
++WPK_DIR = os.path.join(REPO_ROOT, 'WikidPad')
++LIB_DIR = os.path.join(WPK_DIR, 'lib')
++EXTENSIONDIR = os.path.join(WPK_DIR, 'extensions')
++
++for p in (REPO_ROOT, WPK_DIR, LIB_DIR, EXTENSIONDIR):
++    if p not in sys.path:
++        sys.path.append(p)
++
+ 
+ 
+ 
+diff --git a/requirements.txt b/requirements.txt
+index c086593..9cda381 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,3 +1,2 @@
+ pytest
+ pytest-xdist
+-wxPython==4.2.1
+diff --git a/scripts/ci_install.sh b/scripts/ci_install.sh
+index 4691c43..7aba896 100755
+--- a/scripts/ci_install.sh
++++ b/scripts/ci_install.sh
+@@ -1,12 +1,10 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+-python -m pip install -U pip
+-python -m pip install -U setuptools wheel
+-if command -v apt-get >/dev/null 2>&1; then
+-  sudo apt-get update
+-  sudo apt-get install -y xvfb libgtk-3-0 libgl1
+-fi
+-pip install "wxPython==4.2.1"
++
++bash scripts/sysdeps.sh
++bash scripts/venv.sh
++. .venv/bin/activate
++
++# IMPORTANT: requirements.txt must NOT list "wxPython"
++# All other deps install as usual.
+ pip install -r requirements.txt
+-python -c "import sys; print(sys.version)"
+-python -c "import wx; print('wx', wx.VERSION_STRING)"
+diff --git a/scripts/ci_test_gui.sh b/scripts/ci_test_gui.sh
+index 89f8551..5133b91 100755
+--- a/scripts/ci_test_gui.sh
++++ b/scripts/ci_test_gui.sh
+@@ -1,8 +1,6 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+-export PYTEST_ADDOPTS="-q -n 0"
+-if command -v xvfb-run >/dev/null 2>&1; then
+-  xvfb-run -a pytest
+-else
+-  pytest
+-fi
++mkdir -p artifacts
++. .venv/bin/activate
++# Run under a virtual display; no GUI pops up and no build occurs.
++xvfb-run -a pytest -q --maxfail=1 | tee artifacts/pytest.log

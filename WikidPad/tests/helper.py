@@ -82,14 +82,16 @@ except ModuleNotFoundError:  # pragma: no cover - environment without wx
 
 builtins._ = builtins.N_ = lambda s: s  # see WikidPadStarter
 
-# run test from WikidPad directory, fix path
-# todo (pvh): ? fix imports in WikidPad, turn it into a package
-wikidpad_dir = os.path.abspath('.')
-sys.path.append(wikidpad_dir)
-sys.path.append(os.path.join(wikidpad_dir, 'lib'))
+# resolve paths relative to the repo root, and add package/lib to PYTHONPATH
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+WPK_DIR = os.path.join(REPO_ROOT, 'WikidPad')
+LIB_DIR = os.path.join(WPK_DIR, 'lib')
+EXTENSIONDIR = os.path.join(WPK_DIR, 'extensions')
 
-EXTENSIONDIR = os.path.join(wikidpad_dir, 'extensions')
-sys.path.append(EXTENSIONDIR)
+for p in (REPO_ROOT, WPK_DIR, LIB_DIR, EXTENSIONDIR):
+    if p not in sys.path:
+        sys.path.append(p)
+
 
 
 
