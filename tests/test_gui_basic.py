@@ -23,10 +23,14 @@ def build_frame():
 
 def test_click(wx_app, yield_fast):
     frame, button, text = build_frame()
-    sim = wx.UIActionSimulator()
-    pos = button.GetScreenPosition() + (10, 10)
-    sim.MouseMove(pos)
-    sim.MouseClick(wx.MOUSE_BTN_LEFT)
+    frame.Raise()
+    frame.SetFocus()
+    button.SetFocus()
+    wx.Yield()
+    evt = wx.CommandEvent(wx.EVT_BUTTON.typeId, button.GetId())
+    wx.PostEvent(button, evt)
+    for _ in range(3):
+        wx.Yield()
     for _ in range(50):
         wx.Yield()
         if text.GetLabel() == "1":

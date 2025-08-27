@@ -1,7 +1,8 @@
 import pathlib
 import time
-import wx
+
 import pytest
+import wx
 
 
 @pytest.fixture(scope="session", autouse=True)

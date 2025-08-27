@@ -14,6 +14,7 @@ wx.OS_WINDOWS_NT = 18
 wx.OS_WINDOWS_9X = 20
 wx.PlatformInfo = ()
 wx.GetOsVersion = staticmethod(lambda: (0,))
+_orig_wx = sys.modules.get('wx')
 sys.modules['wx'] = wx
 
 from pwiki.StringOps import (
@@ -21,6 +22,11 @@ from pwiki.StringOps import (
     loadEntireFile,
     WRITE_FILE_MODE_OVERWRITE,
 )
+
+if _orig_wx is not None:
+    sys.modules['wx'] = _orig_wx
+else:
+    del sys.modules['wx']
 
 def test_write_entire_file(tmp_path):
     target = tmp_path / 'töst.txt'
