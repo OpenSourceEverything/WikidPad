@@ -69,7 +69,7 @@ class CmdLineAction:
                     ["help", "wiki=", "page=", "exit", "export-what=",
                     "export-type=", "export-dest=", "export-compfn",
                     "export-saved=", "continuous-export-saved=",
-                    "anchor",
+                    "anchor=",
                     "rebuild", "update-ext", "no-recent", "preview", "editor"])
         except getopt.GetoptError:
             self.cmdLineError = True
@@ -402,7 +402,6 @@ N_("""Options:
         """
         wx.MessageBox(addRemark + _(self.USAGE), _("Usage information"),
                 style=wx.OK, parent=None)
-
 
 
 

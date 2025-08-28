@@ -1,0 +1,24 @@
+name: wx-latest
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays at 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  latest:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install -U pip wheel
+          pip install -U wxPython
+          pip install -r requirements.txt
+          pip install -e .
+      - run: |
+          . .venv/bin/activate
+          if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a pytest -q; else pytest -q; fi
