@@ -1,14 +1,9 @@
 pipeline {
   agent { docker { image 'python:3.10-bookworm' } }
   stages {
-    stage('Install') {
+    stage('CI') {
       steps {
-        sh 'bash scripts/ci_install.sh'
-      }
-    }
-    stage('Test') {
-      steps {
-        sh 'bash scripts/ci_test_gui.sh'
+        sh 'make ci'
       }
     }
   }
