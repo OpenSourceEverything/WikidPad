@@ -2,20 +2,36 @@
 set -euo pipefail
 
 # 1) install system deps (best-effort, centralized)
-bash "$(dirname "$0")/os_deps.sh"
+# Uses centralized wxPython pin from scripts/versions.sh when present
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+REPO_DIR="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
+VENV_DIR="${VENV:-.venv}"
+bash "$SCRIPT_DIR/os_deps.sh"
 
-# 2) create isolated venv
-python3 -m venv .venv
+# 2) create isolated venv (optionally expose system site-packages for OS wx)
+VENV_FLAGS=()
+if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
+  VENV_FLAGS+=("--system-site-packages")
+elif [[ -n "${VENV_FLAGS:-}" ]]; then
+  : # keep empty for clarity
+fi
+if [[ -d "$VENV_DIR" && -x "$VENV_DIR/bin/python" ]]; then
+  echo "Using existing venv: $VENV_DIR"
+else
+  rm -rf "$VENV_DIR" 2>/dev/null || true
+  python3 -m venv "$VENV_DIR" "${VENV_FLAGS[@]}"
+fi
 
-# 3) upgrade pip/wheel and install Python deps
-. .venv/bin/activate
-python -m pip install -U pip wheel
+VENV_PY="$VENV_DIR/bin/python"
+
+# 3) upgrade pip/wheel and install Python deps using the venv interpreter
+"$VENV_PY" -m pip install -U pip wheel
 
 # 3b) install Python deps (lint/test/dev)
-python -m pip install -r requirements.txt
+"$VENV_PY" -m pip install -r "$REPO_DIR/requirements.txt"
 
 # 4) ensure wxPython is available
-if python - <<'PY'
+if "$VENV_PY" - <<'PY'
 try:
     import wx
     print(wx.__version__)
@@ -27,50 +43,98 @@ PY
 then
   echo "wxPython already available"
 else
-  echo "Installing wxPython via pip"
-  source scripts/versions.sh
+  echo "Installing wxPython via pip (binary wheels only)"
+  if [[ -r "$SCRIPT_DIR/versions.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/versions.sh"
+  fi
+  : "${WX_VERSION:=4.2.1}"
   if [[ "$(uname -s)" == "Linux" ]]; then
-    # Select distro-specific extras path to fetch prebuilt wheels
     EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
-    DISTRO_DIR=""
+    # Build a list of candidate extras indexes to avoid source builds on newer LTS
+    CANDIDATES=()
     if [[ -r /etc/os-release ]]; then
+      # shellcheck source=/dev/null
       . /etc/os-release
-      case "${ID}-${VERSION_ID}" in
-        ubuntu-22.04*) DISTRO_DIR="ubuntu-22.04" ;;
-        ubuntu-24.04*) DISTRO_DIR="ubuntu-24.04" ;;
-        debian-12*)    DISTRO_DIR="debian-12" ;;
-        debian-11*)    DISTRO_DIR="debian-11" ;;
+      case "${ID:-}-${VERSION_ID:-}" in
+        ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                              CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                              CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+        ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                              CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+        debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \\
+                              CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
+        debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+        *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
       esac
-    fi
-    if [[ -n "$DISTRO_DIR" ]]; then
-      WX_EXTRAS_URL="$EXTRAS_BASE/$DISTRO_DIR/"
     else
-      WX_EXTRAS_URL="$EXTRAS_BASE/"
+      CANDIDATES+=("$EXTRAS_BASE/")
     fi
+
+    PIP_FLAGS=("--prefer-binary" "--only-binary=:all:")
+    for url in "${CANDIDATES[@]}"; do
+      PIP_FLAGS+=("-f" "$url")
+    done
+
     if [[ "${WX_VERSION}" == "latest" ]]; then
-      pip install -U -f "$WX_EXTRAS_URL" wxPython || pip install -U wxPython
+      if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
+        echo "No compatible wxPython binary wheel found for this distro (latest)." >&2
+        exit 1
+      fi
     else
-      pip install -f "$WX_EXTRAS_URL" "wxPython==${WX_VERSION}" || pip install "wxPython==${WX_VERSION}"
+      if ! "$VENV_PY" -m pip install "${PIP_FLAGS[@]}" "wxPython==${WX_VERSION}"; then
+        echo "No compatible wxPython ${WX_VERSION} binary wheel found for this distro." >&2
+        echo "Tried indexes: ${CANDIDATES[*]}" >&2
+        echo "Falling back to latest available wheel." >&2
+        if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
+          echo "Fallback to latest also failed." >&2
+          exit 1
+        fi
+      fi
     fi
   else
     if [[ "${WX_VERSION}" == "latest" ]]; then
-      pip install -U wxPython
+      "$VENV_PY" -m pip install -U --prefer-binary --only-binary=:all: wxPython
     else
-      pip install "wxPython==${WX_VERSION}"
+      "$VENV_PY" -m pip install --prefer-binary --only-binary=:all: "wxPython==${WX_VERSION}"
     fi
   fi
 fi
 
 # 5) install project for entrypoints
-pip install -e .
+"$VENV_PY" -m pip install -e "$REPO_DIR"
 
-# 6) confirm wx is importable (helps debug)
-python - <<'PY'
+# 6) confirm wx is importable; if not, fall back to system wx (auto)
+if ! "$VENV_PY" - <<'PY'
 try:
     import wx
     print("wxPython:", wx.__version__)
 except Exception as e:
-    raise SystemExit("wx import failed: %r" % (e,))
+    raise SystemExit(f"wx import failed: {e!r}")
 PY
+then
+  echo "Attempting fallback to system wxPython (auto)" >&2
+  # 6a) install system wx via OS packages (best-effort)
+  USE_SYSTEM_WX=1 bash "$SCRIPT_DIR/os_deps.sh" || true
+  # 6b) recreate venv with access to system site-packages
+  rm -rf "$VENV_DIR" 2>/dev/null || true
+  python3 -m venv "$VENV_DIR" --system-site-packages
+  VENV_PY="$VENV_DIR/bin/python"
+  "$VENV_PY" -m pip install -U pip wheel
+  "$VENV_PY" -m pip install -r "$REPO_DIR/requirements.txt"
+  "$VENV_PY" -m pip install -e "$REPO_DIR"
+  # 6c) verify again
+  if ! "$VENV_PY" - <<'PY'
+try:
+    import wx
+    print("wxPython(system):", wx.__version__)
+except Exception as e:
+    raise SystemExit(f"wx import failed after system fallback: {e!r}")
+PY
+  then
+    echo "wxPython import still failing after system fallback. See above for details." >&2
+    exit 1
+  fi
+fi
 
 echo "env ready."

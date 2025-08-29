@@ -1,10 +1,24 @@
-gui:
-  image: mcr.microsoft.com/playwright/python:latest
+## GitLab CI: GUI tests via Docker matrix
+## - Uses dind to run scripts/docker_matrix.sh across distros from scripts/distros.list
+## - Saves artifacts under artifacts-matrix/**
+stages:
+  - test
+
+ci-linux:
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    USE_SYSTEM_WX: "1"
   stage: test
+  before_script:
+    - apk add --no-cache bash
   script:
-    - bash scripts/ci_install.sh
-    - bash scripts/ci_test_gui.sh
+    - bash scripts/docker_matrix.sh
   artifacts:
     when: always
+    name: "artifacts-matrix"
     paths:
-      - artifacts/
+      - artifacts-matrix/

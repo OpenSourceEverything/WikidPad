@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal xvfb-run replacement for distros lacking the helper
+# Usage: scripts/xvfb-run [args...] <command> [command-args...]
+
+SCREEN_RES="1920x1080x24"
+DISP_BASE=99
+DISP_MAX=199
+
+pick_display() {
+  local d
+  for d in $(seq "$DISP_BASE" "$DISP_MAX"); do
+    if ! (echo >"/tmp/.X${d}-lock") 2>/dev/null; then
+      continue
+    fi
+    rm -f "/tmp/.X${d}-lock"
+    echo ":$d"
+    return 0
+  done
+  return 1
+}
+
+DISPLAY_NUM=$(pick_display)
+if [[ -z "${DISPLAY_NUM:-}" ]]; then
+  echo "[xvfb-run] failed to pick display" >&2
+  exit 1
+fi
+
+XVFB_CMD=(Xvfb "$DISPLAY_NUM" -screen 0 "$SCREEN_RES" -nolisten tcp)
+"${XVFB_CMD[@]}" >/dev/null 2>&1 &
+XVFB_PID=$!
+
+cleanup() {
+  if kill -0 "$XVFB_PID" >/dev/null 2>&1; then
+    kill "$XVFB_PID" >/dev/null 2>&1 || true
+    wait "$XVFB_PID" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
+export DISPLAY="$DISPLAY_NUM"
+exec "$@"
+
