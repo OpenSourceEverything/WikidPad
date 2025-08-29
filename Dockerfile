@@ -1,14 +1,15 @@
 FROM python:3.10-bookworm
-RUN apt-get update && apt-get install -y xvfb libgtk-3-0 libgl1 make \
- && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY requirements.txt .
-ARG WX_VERSION=4.2.1
-RUN if [ "$WX_VERSION" = "latest" ]; then \
-      pip install -U wxPython; \
-    else \
-      pip install "wxPython==${WX_VERSION}"; \
-    fi \
-    && pip install -r requirements.txt
+
+# Copy only the OS deps script first to leverage layer cache
+COPY scripts/os_deps.sh scripts/os_deps.sh
+RUN bash scripts/os_deps.sh && rm -rf /var/lib/apt/lists/*
+
+# Bring in the rest of the project
 COPY . .
-CMD ["bash", "scripts/ci_test_gui.sh"]
+
+# Prefer system wx inside the container
+ENV USE_SYSTEM_WX=1
+
+# Run the full CI flow inside the container
+CMD ["bash", "-lc", "make ci"]

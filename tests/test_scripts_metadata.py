@@ -12,8 +12,8 @@ def test_launcher_exists_and_invokes_module():
     assert "python -m WikidPad.WikidPadStarter" in content
 
 
-def test_bootstrap_pins_wxpython():
-    path = os.path.join("scripts", "bootstrap.sh")
+def test_setup_pins_wxpython():
+    path = os.path.join("scripts", "setup.sh")
     assert os.path.isfile(path)
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -48,3 +48,15 @@ def test_makefile_has_targets():
         content = f.read()
     for tgt in ("run:", "install-user:", "uninstall-user:", "build-bin:"):
         assert tgt in content
+
+
+def test_install_user_creates_desktop_and_mime():
+    path = os.path.join("scripts", "install-user.sh")
+    assert os.path.isfile(path)
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    # Desktop entry creation
+    assert "wikidpad.desktop" in content
+    assert "MimeType=text/x-wiki;" in content
+    # MIME XML registration (path or filename present)
+    assert "wikidpad.xml" in content
