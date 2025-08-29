@@ -97,6 +97,35 @@ make docker-smoke
   decoupled from runner specifics.
 
 
+## Testing
+
+- Local (host):
+  - Unit/GUI tests: `make test`
+  - Lint only: `make lint`
+  - Full gate (lint + init + tests): `make ci`
+  - Run a specific test: `pytest -q tests/test_cmdline_action.py::test_cmdline_new_style_basic`
+
+- Headless GUI (Linux):
+  - `make test` uses `xvfb-run` if available; otherwise runs normally.
+
+- CI matrix (GitHub Actions):
+  - Runs on `ubuntu-22.04` and `ubuntu-24.04` (see `.github/workflows/gui.yml`).
+  - Both call `make ci`. The setup script detects the distro and installs
+    prebuilt wxPython wheels from the wxPython “extras” repo to avoid source
+    builds and ensure stable runs.
+
+- Docker parity:
+  - Tests in Docker (full CI): `make docker-ci`
+  - Minimal GUI smoke test in Docker: `make docker-smoke`
+  - Docker builds include required OS GUI deps and run `make ci` inside.
+
+- Notes:
+  - wxPython version pin is centralized (see section below). Docker uses
+    system wx for speed; host pinning remains consistent via `make init`.
+  - Deprecation warnings from upstream libraries may appear; tests should
+    still pass.
+
+
 ## Version Pinning (wxPython)
 
 - Central pin: `scripts/versions.sh` (env var `WX_VERSION`, default 4.2.1)

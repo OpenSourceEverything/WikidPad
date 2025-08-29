@@ -11,7 +11,6 @@ PKGS=(
   libgl1
   make
   python3-venv
-  python3-wxgtk4.0
 )
 
 if command -v apt-get >/dev/null 2>&1; then
@@ -26,4 +25,3 @@ else
 fi
 
 echo "[os_deps] done"
-
