@@ -9,6 +9,6 @@ source scripts/versions.sh
 docker build --build-arg WX_VERSION="$WX_VERSION" -t "$IMAGE" .
 
 # Override CMD to run tests directly (no venv activation needed inside image)
-docker run --rm "$IMAGE" bash -lc 'xvfb-run -a pytest -q'
+docker run --rm -e USE_SYSTEM_WX=1 "$IMAGE" bash -lc 'xvfb-run -a pytest -q'
 
 echo "Docker smoke test completed."

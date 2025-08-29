@@ -9,6 +9,6 @@ IMAGE="wikidpad:ci"
 source scripts/versions.sh
 docker build --build-arg WX_VERSION="$WX_VERSION" -t "$IMAGE" .
 
-docker run --rm "$IMAGE" bash -lc 'make ci'
+docker run --rm -e USE_SYSTEM_WX=1 "$IMAGE" bash -lc 'make ci'
 
 echo "Docker CI run completed."

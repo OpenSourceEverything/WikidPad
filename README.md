@@ -27,10 +27,10 @@ Note: Linux desktops require GUI libraries (e.g., `libgtk-3-0`, `libgl1`).
 
 This sets up a local virtual environment and a `wikidpad` launcher.
 
-1) Bootstrap
+1) Initialize environment
 
 ```bash
-bash scripts/bootstrap.sh
+make init
 ```
 
 2) Run WikidPad with your wiki file
@@ -63,6 +63,8 @@ bash scripts/install-user.sh --pipx
 - `make format`        Auto-format with black
 - `make run WIKI=...`  Launch via `scripts/wikidpad`
 - `make install-user`  Install user launcher (`wikidpad`)
+  - Also installs a user .desktop entry and icon
+  - Associates text/x-wiki with WikidPad (user scope) if possible
 - `make build-bin`     Build a standalone binary (PyInstaller)
 - `make docker-smoke`  Build image and run GUI smoke tests in Docker
 - `make docker-ci`     Build image and run lint + tests in Docker
@@ -120,7 +122,7 @@ make docker-ci
 
 ```bash
 # Setup
-bash scripts/bootstrap.sh
+make init
 
 # Run
 scripts/wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
