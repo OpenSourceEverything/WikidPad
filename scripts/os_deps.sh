@@ -9,6 +9,7 @@ PKGS=(
   xvfb
   libgtk-3-0
   libgl1
+  libnotify4
   make
   python3-venv
 )
