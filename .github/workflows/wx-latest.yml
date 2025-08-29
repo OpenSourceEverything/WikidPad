@@ -1,17 +1,29 @@
+## GitHub Actions: Test with latest wxPython
+## - Runs weekly and on manual dispatch
+## - Installs latest wxPython + project deps, then runs tests (uses xvfb if available)
 name: wx-latest
 on:
   schedule:
+    # Weekly run to catch regressions against new wxPython wheels
     - cron: '0 6 * * 1' # Mondays at 06:00 UTC
+  # Allow manual runs from the Actions tab
   workflow_dispatch: {}
 
 jobs:
   latest:
+    # Use a recent Ubuntu image; wxPython wheels are available here
     runs-on: ubuntu-22.04
     steps:
+      # Check out the repository code
       - uses: actions/checkout@v4
+      # Set up Python 3.10 for this job
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+      # Create venv and install dependencies
+      # - Upgrade pip/wheel for reliable builds
+      # - Install the latest released wxPython
+      # - Install project requirements and the package itself (editable)
       - run: |
           python -m venv .venv
           . .venv/bin/activate
@@ -19,6 +31,8 @@ jobs:
           pip install -U wxPython
           pip install -r requirements.txt
           pip install -e .
+      # Run tests
+      # If available, wrap pytest with xvfb to support GUI-related tests headlessly
       - run: |
           . .venv/bin/activate
           if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a pytest -q; else pytest -q; fi
