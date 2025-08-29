@@ -1,3 +1,6 @@
+## GitLab CI: GUI tests via Docker matrix
+## - Uses dind to run scripts/docker_matrix.sh across distros from scripts/distros.list
+## - Saves artifacts under artifacts-matrix/**
 stages:
   - test
 

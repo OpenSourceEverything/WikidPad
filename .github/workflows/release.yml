@@ -1,3 +1,6 @@
+## GitHub Actions: Build release artifacts (Linux only)
+## - Trigger: push of tags matching v*
+## - Linux: setup via scripts/setup.sh, build with PyInstaller, package via scripts/package.sh
 name: release
 on:
   push:
@@ -7,31 +10,67 @@ jobs:
   linux:
     runs-on: ubuntu-22.04
     steps:
+      # Checkout source code
       - uses: actions/checkout@v4
+      # Install Python 3.10 and enable pip cache
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: pip
-      - run: bash scripts/bootstrap.sh
+      # Prepare environment: system + Python deps, wxPython, project install
+      - run: bash scripts/setup.sh
+      # Build a windowed PyInstaller app; outputs under dist/
       - run: bash scripts/build-pyinstaller.sh
+      # Optionally import GPG signing key (if SIGN_RELEASE=true and key is provided)
+      - name: Import GPG key
+        if: vars.SIGN_RELEASE == 'true'
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [[ -n "${GPG_PRIVATE_KEY}" ]]; then
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+            gpg --list-keys || true
+          else
+            echo "No GPG_PRIVATE_KEY provided; skipping import." >&2
+          fi
+      # Package into versioned archive + checksums (provider-neutral)
+      - name: Package artifacts
+        if: vars.SIGN_RELEASE != 'true'
+        run: bash scripts/package.sh --os linux --version "${{ github.ref_name }}"
+      - name: Package artifacts (signed)
+        if: vars.SIGN_RELEASE == 'true'
+        env:
+          GPG_KEY_ID: ${{ vars.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: bash scripts/package.sh --os linux --version "${{ github.ref_name }}" --sign
+      # Upload packaged artifacts (release/**)
       - uses: actions/upload-artifact@v4
         with:
           name: wikidpad-linux
-          path: dist/**
+          path: release/**
 
-  windows:
-    runs-on: windows-2022
+  publish:
+    # Create a GitHub Release and attach packaged artifacts
+    # Gate: requires repository variable PUBLISH_RELEASE == 'true'
+    needs: [linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_RELEASE == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/download-artifact@v4
         with:
-          python-version: "3.10"
-      - run: python -m venv .venv
-      - run: .\.venv\Scripts\pip install -U pip wheel
-      - run: .\.venv\Scripts\pip install wxPython==4.2.1 -e . pyinstaller
-      - run: .\.venv\Scripts\pyinstaller --name wikidpad --windowed WikidPad.py
-      - uses: actions/upload-artifact@v4
+          name: wikidpad-linux
+          path: release-assets/linux
+      - name: Generate release notes from CHANGELOG
+        run: |
+          mkdir -p release-assets
+          bash scripts/release_notes.sh --version "${{ github.ref_name }}" --out release-assets/RELEASE_NOTES.md
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v1
         with:
-          name: wikidpad-windows
-          path: dist/**
-
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          generate_release_notes: true
+          body_path: release-assets/RELEASE_NOTES.md
+          files: |
+            release-assets/linux/*

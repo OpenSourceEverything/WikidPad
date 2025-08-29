@@ -1,3 +1,6 @@
+## Makefile: developer entrypoints
+## - init/test/lint/run common tasks
+## - docker-matrix: run CI across distros listed in scripts/distros.list
 SHELL := /usr/bin/env bash
 VENV ?= .venv
 PY := $(VENV)/bin/python

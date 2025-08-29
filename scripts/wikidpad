@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Thin launcher for local development.
+# - Ensures .venv exists (created by scripts/setup.sh)
+# - Activates it and runs the GUI entrypoint: python -m WikidPad.WikidPadStarter
+
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="$REPO_DIR/.venv"
 
 if [[ ! -d "$VENV_DIR" ]]; then
-  echo "Missing venv at $VENV_DIR. Run scripts/bootstrap.sh first." >&2
+  echo "Missing venv at $VENV_DIR. Run scripts/setup.sh first." >&2
   exit 1
 fi
 
 source "$VENV_DIR/bin/activate"
 exec python -m WikidPad.WikidPadStarter "$@"
-
