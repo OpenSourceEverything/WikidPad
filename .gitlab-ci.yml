@@ -2,28 +2,20 @@ stages:
   - test
 
 ci-linux:
-  stage: test
-  parallel:
-    matrix:
-      - IMAGE: "ubuntu:22.04"
-        NAME:  "ubuntu-22.04"
-      - IMAGE: "ubuntu:24.04"
-        NAME:  "ubuntu-24.04"
-      - IMAGE: "debian:11"
-        NAME:  "debian-11"
-      - IMAGE: "debian:12"
-        NAME:  "debian-12"
-      - IMAGE: "fedora:40"
-        NAME:  "fedora-40"
-  image: $IMAGE
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
   variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
     USE_SYSTEM_WX: "1"
+  stage: test
   before_script:
-    - bash scripts/os_deps.sh
+    - apk add --no-cache bash
   script:
-    - make ci
+    - bash scripts/docker_matrix.sh
   artifacts:
     when: always
-    name: "artifacts-$NAME"
+    name: "artifacts-matrix"
     paths:
-      - artifacts/
+      - artifacts-matrix/

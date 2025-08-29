@@ -1,16 +1,16 @@
 SHELL := /usr/bin/env bash
-VENV := .venv
+VENV ?= .venv
 PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 
-.PHONY: init test clean run install-user uninstall-user build-bin docker-smoke docker-ci lint format ci
+.PHONY: init test clean run install-user uninstall-user build-bin docker-matrix docker-ci lint format ci
 
 init:
 	@bash scripts/setup.sh
 
 test:
 	@source $(VENV)/bin/activate >/dev/null 2>&1 && \
-	if command -v xvfb-run >/dev/null 2>&1; then \
+	if command -v xvfb-run >/dev/null 2>&1 && command -v xauth >/dev/null 2>&1; then \
 		xvfb-run -a python -m pytest -q; \
 	elif [[ -e scripts/xvfb-run ]]; then \
 		bash scripts/xvfb-run python -m pytest -q; \
@@ -19,7 +19,12 @@ test:
 	fi
 
 clean:
-	rm -rf $(VENV) .pytest_cache .coverage dist build artifacts
+	chmod -R u+w $(VENV) >/dev/null 2>&1 || true
+	rm -rf $(VENV) .pytest_cache .coverage dist build artifacts || true
+	@if [ -d $(VENV) ]; then \
+		echo "Could not remove $(VENV). If it was created in a container as root, run:"; \
+		echo "  sudo rm -rf $(VENV)"; \
+	fi
 
 run:
 	@scripts/wikidpad --wiki $(WIKI)
@@ -33,11 +38,20 @@ uninstall-user:
 build-bin:
 	@bash scripts/build-pyinstaller.sh
 
-docker-smoke:
-	@bash scripts/docker_smoke.sh
+# Run CI across the Linux matrix defined in scripts/distros.list.
+# Usage:
+#   make docker-matrix                 # run all distros
+#   make docker-matrix ONLY=name       # run a single distro by name
+#   make docker-matrix LIST=1          # list targets (name + image)
+# Notes:
+#   - scripts/docker_matrix.sh reads scripts/distros.list (name image)
+#   - results are collected under artifacts-matrix/<name>/
+docker-matrix:
+	@bash scripts/docker_matrix.sh $(if $(LIST),--list,) $(if $(ONLY),--only $(ONLY),)
 
-docker-ci:
-	@bash scripts/docker_ci.sh
+# Back-compat: keep docker-ci as an alias to the full matrix.
+# This ensures CI defaults to testing all distros, not just one.
+docker-ci: docker-matrix
 
 lint:
 	@source $(VENV)/bin/activate >/dev/null 2>&1 || true; \
@@ -54,6 +68,6 @@ format:
 	black .
 
 ci:
-	@echo "[ci] lint" && $(MAKE) lint
 	@echo "[ci] init" && $(MAKE) init
+	@echo "[ci] lint" && $(MAKE) lint
 	@echo "[ci] test" && $(MAKE) test

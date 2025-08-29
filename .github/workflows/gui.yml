@@ -1,28 +1,16 @@
 name: gui
 on: [push, pull_request]
 jobs:
-  linux-matrix:
-    name: ${{ matrix.distro.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        distro:
-          - { name: ubuntu-22.04, image: 'ubuntu:22.04' }
-          - { name: ubuntu-24.04, image: 'ubuntu:24.04' }
-          - { name: debian-11,    image: 'debian:11' }
-          - { name: debian-12,    image: 'debian:12' }
-          - { name: fedora-40,    image: 'fedora:40' }
+  linux-matrix-via-docker:
     runs-on: ubuntu-latest
-    container: ${{ matrix.distro.image }}
     env:
       USE_SYSTEM_WX: '1'
     steps:
       - uses: actions/checkout@v4
-      # Ensure Python and GUI deps exist inside the container
-      - run: bash scripts/os_deps.sh
-      - run: make ci
+      - name: Run matrix from scripts/distros.list (single source of truth)
+        run: bash scripts/docker_matrix.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-artifacts-${{ matrix.distro.name }}
-          path: artifacts
+          name: artifacts-matrix
+          path: artifacts-matrix
