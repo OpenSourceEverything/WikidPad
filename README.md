@@ -78,23 +78,12 @@ wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 ```
 
 
-## Docker smoke test (local)
-
-Requires Docker:
-
-```bash
-bash scripts/docker_smoke.sh
-# or
-make docker-smoke
-```
-
-
 ## Local CI Parity
 
 - One command locally (host): `make ci`
-- Exact CI parity in Docker: `make docker-ci`
-- CI systems (GitHub Actions, Jenkins) also call `make ci` to stay
-  decoupled from runner specifics.
+- Cross-distro parity via Docker: `make docker-matrix`
+- CI systems (GitHub Actions, Jenkins, GitLab) call the same matrix script
+  to stay decoupled from provider-specific features.
 
 
 ## Testing
@@ -108,20 +97,15 @@ make docker-smoke
 - Headless GUI (Linux):
   - `make test` uses `xvfb-run` if available; otherwise runs normally.
 
-- CI matrix (GitHub Actions):
-  - Runs on `ubuntu-22.04` and `ubuntu-24.04` (see `.github/workflows/gui.yml`).
-  - Both call `make ci`. The setup script detects the distro and installs
-    prebuilt wxPython wheels from the wxPython “extras” repo to avoid source
-    builds and ensure stable runs.
-
-- Docker parity:
-  - Tests in Docker (full CI): `make docker-ci`
-  - Minimal GUI smoke test in Docker: `make docker-smoke`
-  - Docker builds include required OS GUI deps and run `make ci` inside.
+- Local/CI Linux matrix:
+  - Canonical list of distros: `scripts/distros.list` (name + container image)
+  - Run all locally: `make docker-matrix`
+  - Run one locally: `make docker-matrix ONLY=ubuntu-24.04`
+  - The same script is used in CI, so local/CI parity is high.
 
 - Notes:
-  - wxPython version pin is centralized (see section below). Docker uses
-    system wx for speed; host pinning remains consistent via `make init`.
+  - wxPython version pin is centralized (see section below). Host and CI paths
+    both honor it via `scripts/setup.sh` and `scripts/versions.sh`.
   - Deprecation warnings from upstream libraries may appear; tests should
     still pass.
 
@@ -130,7 +114,7 @@ make docker-smoke
 
 - Central pin: `scripts/versions.sh` (env var `WX_VERSION`, default 4.2.1)
 - All flows honor the pin: `scripts/bootstrap.sh`, `scripts/setup.sh`,
-  `Dockerfile` (via `ARG WX_VERSION`), and Docker scripts.
+  and the Docker-based matrix runner.
 - Test against the latest weekly: `.github/workflows/wx-latest.yml`
 
 Upgrade steps:
@@ -163,8 +147,8 @@ wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 # CI locally (host)
 make ci
 
-# CI locally (Docker parity)
-make docker-ci
+# CI locally (Docker, all distros)
+make docker-matrix
 
 # Lint/format
 make lint

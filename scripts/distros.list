@@ -1,0 +1,10 @@
+# name image
+# Lines are: <distro-name> <container-image>
+# Use with scripts/docker_matrix.sh to run the CI across distros locally.
+
+ubuntu-22.04 ubuntu:22.04
+ubuntu-24.04 ubuntu:24.04
+debian-11    debian:11
+debian-12    debian:12
+fedora-40    fedora:40
+
