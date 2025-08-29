@@ -1,3 +1,7 @@
+## GitHub Actions: GUI tests via Docker matrix
+## - Runs on push and PR
+## - Executes scripts/docker_matrix.sh to test across distros listed in scripts/distros.list
+## - Uploads GUI test artifacts (screenshots/logs) per distro under artifacts-matrix/
 name: gui
 on: [push, pull_request]
 jobs:
@@ -6,9 +10,12 @@ jobs:
     env:
       USE_SYSTEM_WX: '1'
     steps:
+      # Checkout source code
       - uses: actions/checkout@v4
+      # Run the provider-neutral matrix (single source of truth)
       - name: Run matrix from scripts/distros.list (single source of truth)
         run: bash scripts/docker_matrix.sh
+      # Always upload artifacts for debugging (per-distro folders)
       - uses: actions/upload-artifact@v4
         if: always()
         with:

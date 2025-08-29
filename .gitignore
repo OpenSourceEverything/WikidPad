@@ -19,6 +19,7 @@ env/
 .venv/
 build/
 artifacts/
+release/
 develop-eggs/
 dist/
 downloads/
