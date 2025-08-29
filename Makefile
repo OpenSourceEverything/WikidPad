@@ -12,6 +12,8 @@ test:
 	@source $(VENV)/bin/activate >/dev/null 2>&1 && \
 	if command -v xvfb-run >/dev/null 2>&1; then \
 		xvfb-run -a python -m pytest -q; \
+	elif [[ -e scripts/xvfb-run ]]; then \
+		bash scripts/xvfb-run python -m pytest -q; \
 	else \
 		python -m pytest -q; \
 	fi

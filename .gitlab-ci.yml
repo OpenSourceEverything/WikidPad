@@ -1,10 +1,29 @@
-gui:
-  image: mcr.microsoft.com/playwright/python:latest
+stages:
+  - test
+
+ci-linux:
   stage: test
+  parallel:
+    matrix:
+      - IMAGE: "ubuntu:22.04"
+        NAME:  "ubuntu-22.04"
+      - IMAGE: "ubuntu:24.04"
+        NAME:  "ubuntu-24.04"
+      - IMAGE: "debian:11"
+        NAME:  "debian-11"
+      - IMAGE: "debian:12"
+        NAME:  "debian-12"
+      - IMAGE: "fedora:40"
+        NAME:  "fedora-40"
+  image: $IMAGE
+  variables:
+    USE_SYSTEM_WX: "1"
+  before_script:
+    - bash scripts/os_deps.sh
   script:
-    - bash scripts/ci_install.sh
-    - bash scripts/ci_test_gui.sh
+    - make ci
   artifacts:
     when: always
+    name: "artifacts-$NAME"
     paths:
       - artifacts/
