@@ -1,21 +1,28 @@
 name: gui
 on: [push, pull_request]
 jobs:
-  gui-matrix:
+  linux-matrix:
+    name: ${{ matrix.distro.name }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
-    runs-on: ${{ matrix.os }}
+        distro:
+          - { name: ubuntu-22.04, image: 'ubuntu:22.04' }
+          - { name: ubuntu-24.04, image: 'ubuntu:24.04' }
+          - { name: debian-11,    image: 'debian:11' }
+          - { name: debian-12,    image: 'debian:12' }
+          - { name: fedora-40,    image: 'fedora:40' }
+    runs-on: ubuntu-latest
+    container: ${{ matrix.distro.image }}
+    env:
+      USE_SYSTEM_WX: '1'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
+      # Ensure Python and GUI deps exist inside the container
+      - run: bash scripts/os_deps.sh
       - run: make ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-artifacts-${{ matrix.os }}
+          name: test-artifacts-${{ matrix.distro.name }}
           path: artifacts

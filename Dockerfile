@@ -1,4 +1,4 @@
-FROM python:3.10-bookworm
+FROM ubuntu:22.04
 WORKDIR /app
 
 # Copy only the OS deps script first to leverage layer cache
