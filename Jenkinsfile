@@ -1,15 +1,21 @@
+// Jenkins CI: run the same Docker-based Linux matrix used by GitHub/GitLab
+// - Calls scripts/docker_matrix.sh which reads scripts/distros.list
+// - Archives artifacts-matrix/** for debugging
 pipeline {
-  agent { docker { image 'python:3.10-bookworm' } }
+  agent { label 'docker' }
+  environment {
+    USE_SYSTEM_WX = '1'
+  }
   stages {
-    stage('CI') {
+    stage('Matrix via docker_matrix.sh') {
       steps {
-        sh 'make ci'
+        sh 'bash scripts/docker_matrix.sh'
       }
     }
   }
   post {
     always {
-      archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'artifacts-matrix/**', allowEmptyArchive: true
     }
   }
 }

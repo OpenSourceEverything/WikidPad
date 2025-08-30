@@ -1,19 +1,16 @@
 # WikidPad
 
 WikidPad is a wiki-like notebook for storing thoughts, ideas, todo lists,
-contacts, or anything else you want to write down. It runs on Windows, Linux,
-and macOS, and is written mostly in Python with wxPython for the GUI.
+contacts, or anything else you want to write down. This repo supports Linux,
+and is written mostly in Python with wxPython for the GUI.
 
 
 ## Links
 
 - Main website: http://wikidpad.sourceforge.net/
 - Source repository: https://github.com/WikidPad/WikidPad/
-- Downloads (Windows binary and source):
-  http://sourceforge.net/projects/wikidpad/files/?source=navbar
 - Docs snapshot (Wayback, May 2020):
   https://web.archive.org/web/20200502083222/https://trac.wikidpad2.webfactional.com/wiki/WikiStart
-
 
 ## Prerequisites
 
@@ -21,7 +18,6 @@ and macOS, and is written mostly in Python with wxPython for the GUI.
 - wxPython 4.2.x
 
 Note: Linux desktops require GUI libraries (e.g., `libgtk-3-0`, `libgl1`).
-
 
 ## Quick Start (recommended)
 
@@ -32,7 +28,6 @@ This sets up a local virtual environment and a `wikidpad` launcher.
 ```bash
 make init
 ```
-
 2) Run WikidPad with your wiki file
 
 ```bash
@@ -54,7 +49,6 @@ Pipx (optional)
 bash scripts/install-user.sh --pipx
 ```
 
-
 ## Make targets
 
 - `make init`          Install system deps + venv (CI-friendly)
@@ -69,7 +63,6 @@ bash scripts/install-user.sh --pipx
 - `make docker-smoke`  Build image and run GUI smoke tests in Docker
 - `make docker-ci`     Build image and run lint + tests in Docker
 
-
 ## Alternative: pipx install
 
 ```bash
@@ -77,25 +70,12 @@ pipx install .
 wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 ```
 
-
-## Docker smoke test (local)
-
-Requires Docker:
-
-```bash
-bash scripts/docker_smoke.sh
-# or
-make docker-smoke
-```
-
-
 ## Local CI Parity
 
 - One command locally (host): `make ci`
-- Exact CI parity in Docker: `make docker-ci`
-- CI systems (GitHub Actions, Jenkins) also call `make ci` to stay
-  decoupled from runner specifics.
-
+- Cross-distro parity via Docker: `make docker-matrix`
+- CI systems (GitHub Actions, Jenkins, GitLab) call the same matrix script
+  to stay decoupled from provider-specific features.
 
 ## Testing
 
@@ -108,29 +88,22 @@ make docker-smoke
 - Headless GUI (Linux):
   - `make test` uses `xvfb-run` if available; otherwise runs normally.
 
-- CI matrix (GitHub Actions):
-  - Runs on `ubuntu-22.04` and `ubuntu-24.04` (see `.github/workflows/gui.yml`).
-  - Both call `make ci`. The setup script detects the distro and installs
-    prebuilt wxPython wheels from the wxPython “extras” repo to avoid source
-    builds and ensure stable runs.
-
-- Docker parity:
-  - Tests in Docker (full CI): `make docker-ci`
-  - Minimal GUI smoke test in Docker: `make docker-smoke`
-  - Docker builds include required OS GUI deps and run `make ci` inside.
+- Local/CI Linux matrix:
+  - Canonical list of distros: `scripts/distros.list` (name + container image)
+  - Run all locally: `make docker-matrix`
+  - Run one locally: `make docker-matrix ONLY=ubuntu-24.04`
+  - The same script is used in CI, so local/CI parity is high.
 
 - Notes:
-  - wxPython version pin is centralized (see section below). Docker uses
-    system wx for speed; host pinning remains consistent via `make init`.
+  - wxPython version pin is centralized (see section below). Host and CI paths
+    both honor it via `scripts/setup.sh` and `scripts/versions.sh`.
   - Deprecation warnings from upstream libraries may appear; tests should
     still pass.
-
 
 ## Version Pinning (wxPython)
 
 - Central pin: `scripts/versions.sh` (env var `WX_VERSION`, default 4.2.1)
-- All flows honor the pin: `scripts/bootstrap.sh`, `scripts/setup.sh`,
-  `Dockerfile` (via `ARG WX_VERSION`), and Docker scripts.
+- All flows honor the pin: `scripts/setup.sh` and the Docker-based matrix runner.
 - Test against the latest weekly: `.github/workflows/wx-latest.yml`
 
 Upgrade steps:
@@ -145,7 +118,6 @@ bash scripts/bump-wx.sh 4.2.2
 # Verify in Docker:
 make docker-ci
 ```
-
 
 ## Cheat Sheet
 
@@ -163,8 +135,8 @@ wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 # CI locally (host)
 make ci
 
-# CI locally (Docker parity)
-make docker-ci
+# CI locally (Docker, all distros)
+make docker-matrix
 
 # Lint/format
 make lint
@@ -174,15 +146,20 @@ make format
 make build-bin
 ```
 
-
 ## Notes
+
+## Releases
+
+- Linux-only release artifacts are supported today.
+- See `docs/RELEASING.md` for how to version, tag, package, and publish.
+- CI builds and packages artifacts using provider‑neutral scripts under `scripts/`.
+ - Artifacts include `SHA256SUMS` and optionally a GPG signature `SHA256SUMS.asc`.
 
 - The command-line accepts either a bare wiki file path (old style) or
   `--wiki /path/to/YourWiki.wiki` (new style). Use the `.wiki` file inside
   your wiki directory.
 - GTK warnings like "No accel key found" and size assertions can occur on
   some Linux setups and are typically harmless.
-
 
 ## License
 
