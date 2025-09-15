@@ -1,0 +1,6 @@
+wikidpad (2.4.0-1) unstable; urgency=medium
+
+  * Initial packaging scaffold.
+
+ -- WikidPad Maintainers <maintainers@example.com>  Mon, 15 Sep 2025 00:00:00 +0000
+

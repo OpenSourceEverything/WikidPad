@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown arg: $1" >&2; usage; exit 2 ;;
   esac
   shift || true
-endone
+done
 
 # Derive version if not supplied
 if [[ -z "$VERSION" ]]; then

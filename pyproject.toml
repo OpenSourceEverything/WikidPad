@@ -13,7 +13,6 @@ extend-exclude = [
   # Exclude legacy packaging scripts from lint
   "buildWinPortZip.py",
   "setup.py",
-  "setup_macosx.py",
 ]
 
 [tool.ruff.lint]
@@ -37,4 +36,3 @@ exclude = '''
   | setup(_macosx)?\.py
 )/
 '''
-

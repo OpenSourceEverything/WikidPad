@@ -6,7 +6,7 @@ VENV ?= .venv
 PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 
-.PHONY: init test clean run install-user uninstall-user build-bin docker-matrix docker-ci lint format ci
+.PHONY: init test tests test-install test-release clean run install-user uninstall-user build-bin docker-matrix docker-ci lint format ci release
 
 init:
 	@bash scripts/setup.sh
@@ -20,6 +20,14 @@ test:
 	else \
 		python -m pytest -q; \
 	fi
+
+tests: test test-install
+
+test-install:
+	@bash scripts/test_install.sh
+
+test-release:
+	@bash scripts/test_release.sh $(if $(VERSION),$(VERSION),)
 
 clean:
 	chmod -R u+w $(VENV) >/dev/null 2>&1 || true
@@ -40,6 +48,9 @@ uninstall-user:
 
 build-bin:
 	@bash scripts/build-pyinstaller.sh
+
+release:
+	@bash scripts/release.sh $(if $(VERSION),--version $(VERSION),) $(if $(SIGN),--sign,)
 
 # Run CI across the Linux matrix defined in scripts/distros.list.
 # Usage:
