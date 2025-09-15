@@ -62,7 +62,10 @@ run_one() {
   echo "=== [${name}] image=${image} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
+  # Run container as host user to avoid root-owned artifacts on the mount
+  DOCKER_UIDGID="$(id -u):$(id -g)"
   docker run --rm -t \
+    -u "$DOCKER_UIDGID" \
     -v "$REPO_DIR":/app -w /app \
     -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
     -e VENV="/tmp/venv-${name}" \
