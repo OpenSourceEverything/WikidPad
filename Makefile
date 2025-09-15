@@ -6,7 +6,9 @@ VENV ?= .venv
 PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 
-.PHONY: init test tests test-install test-release clean run install-user uninstall-user build-bin docker-matrix docker-ci lint format ci release
+.PHONY: init test tests test-install test-release test-all list-tests \
+        clean run install-user uninstall-user build-bin docker-matrix \
+        docker-ci lint format ci release
 
 init:
 	@bash scripts/setup.sh
@@ -28,6 +30,19 @@ test-install:
 
 test-release:
 	@bash scripts/test_release.sh $(if $(VERSION),$(VERSION),)
+
+# Full local suite (no Docker). Optional: WITH_RELEASE=1 to include release dry-run
+test-all:
+	@$(MAKE) ci
+	@$(MAKE) test-install
+	@if [[ "$(WITH_RELEASE)" == "1" ]]; then \
+		$(MAKE) test-release $(if $(VERSION),VERSION=$(VERSION),); \
+	else \
+		echo "[test-all] skipping release dry-run (set WITH_RELEASE=1 to include)"; \
+	fi
+
+list-tests:
+	@sed -n '1,200p' docs/TESTING.md | sed -n '/^## Suite/,/^## /p' || true
 
 clean:
 	chmod -R u+w $(VENV) >/dev/null 2>&1 || true

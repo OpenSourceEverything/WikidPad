@@ -17,6 +17,7 @@ Docs in this repo:
 - docs/RELEASE.md
 - docs/PROJECT_FILES.md
 - docs/PACKAGING_DEBIAN.md
+ - docs/TESTING.md
 
 ## Prerequisites
 
@@ -66,22 +67,15 @@ wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 - Docker matrix: `make docker-matrix`
 - CI calls the same scripts; provider-neutral
 
-## Testing
+## Testing (quick)
 
-- Local (host):
-  - Unit/GUI tests: `make test`
-  - Lint only: `make lint`
-  - Full gate (lint + init + tests): `make ci`
-  - Run a specific test: `pytest -q tests/test_cmdline_action.py::test_cmdline_new_style_basic`
+```
+make test       # pytest
+make tests      # pytest + install sanity
+make test-all   # full local (set WITH_RELEASE=1 to include release dry-run)
+```
 
-- Headless GUI (Linux):
-  - `make test` uses `xvfb-run` if available; otherwise runs normally.
-
-- Local/CI Linux matrix:
-  - Canonical list of distros: `scripts/distros.list` (name + container image)
-  - Run all locally: `make docker-matrix`
-  - Run one locally: `make docker-matrix ONLY=ubuntu-24.04`
-  - The same script is used in CI, so local/CI parity is high.
+More: docs/TESTING.md
 
 - Notes:
   - wxPython version pin is centralized (see section below). Host and CI paths
