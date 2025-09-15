@@ -1,0 +1,27 @@
+## GitHub Actions: Weekly dry-run release (Linux)
+## - Verifies build + package without publishing
+## - Uses latest wxPython to catch wheel regressions
+name: release-canary
+on:
+  schedule:
+    - cron: '0 5 * * 1'  # Mondays 05:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  canary:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Dry-run release
+        env:
+          WX_VERSION: latest
+        run: make test-release VERSION=0.0.0-ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-canary
+          path: release/**
+

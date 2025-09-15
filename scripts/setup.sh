@@ -6,6 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 REPO_DIR="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
 VENV_DIR="${VENV:-.venv}"
+# Install base OS deps; if FORCE_WX_SOURCE=1, os_deps.sh will include dev headers
 bash "$SCRIPT_DIR/os_deps.sh"
 
 # 2) create isolated venv (optionally expose system site-packages for OS wx)
@@ -30,8 +31,22 @@ VENV_PY="$VENV_DIR/bin/python"
 # 3b) install Python deps (lint/test/dev)
 "$VENV_PY" -m pip install -r "$REPO_DIR/requirements.txt"
 
-# 4) ensure wxPython is available
-if "$VENV_PY" - <<'PY'
+# 4) ensure wxPython is available (binary by default; opt-in source build)
+if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+  echo "FORCE_WX_SOURCE=1: installing wxPython from source (sdist)"
+  if [[ -r "$SCRIPT_DIR/versions.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/versions.sh"
+  fi
+  : "${WX_VERSION:=4.2.1}"
+  if [[ "${WX_VERSION}" == "latest" ]]; then
+    "$VENV_PY" -m pip install --no-binary=wxPython wxPython
+  else
+    "$VENV_PY" -m pip install --no-binary=wxPython "wxPython==${WX_VERSION}"
+  fi
+else
+  # Attempt to import first; otherwise install binary wheel using extras index
+  if "$VENV_PY" - <<'PY'
 try:
     import wx
     print(wx.__version__)
@@ -40,63 +55,64 @@ except Exception:
     ok = False
 import sys; sys.exit(0 if ok else 1)
 PY
-then
-  echo "wxPython already available"
-else
-  echo "Installing wxPython via pip (binary wheels only)"
-  if [[ -r "$SCRIPT_DIR/versions.sh" ]]; then
-    # shellcheck source=/dev/null
-    source "$SCRIPT_DIR/versions.sh"
-  fi
-  : "${WX_VERSION:=4.2.1}"
-  if [[ "$(uname -s)" == "Linux" ]]; then
-    EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
-    # Build a list of candidate extras indexes to avoid source builds on newer LTS
-    CANDIDATES=()
-    if [[ -r /etc/os-release ]]; then
+  then
+    echo "wxPython already available"
+  else
+    echo "Installing wxPython via pip (binary wheels only)"
+    if [[ -r "$SCRIPT_DIR/versions.sh" ]]; then
       # shellcheck source=/dev/null
-      . /etc/os-release
-      case "${ID:-}-${VERSION_ID:-}" in
-        ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
-                              CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                              CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
-        ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                              CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
-        debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \\
-                              CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
-        debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
-        *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
-      esac
-    else
-      CANDIDATES+=("$EXTRAS_BASE/")
+      source "$SCRIPT_DIR/versions.sh"
     fi
-
-    PIP_FLAGS=("--prefer-binary" "--only-binary=:all:")
-    for url in "${CANDIDATES[@]}"; do
-      PIP_FLAGS+=("-f" "$url")
-    done
-
-    if [[ "${WX_VERSION}" == "latest" ]]; then
-      if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
-        echo "No compatible wxPython binary wheel found for this distro (latest)." >&2
-        exit 1
+    : "${WX_VERSION:=4.2.1}"
+    if [[ "$(uname -s)" == "Linux" ]]; then
+      EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
+      # Build a list of candidate extras indexes to avoid source builds on newer LTS
+      CANDIDATES=()
+      if [[ -r /etc/os-release ]]; then
+        # shellcheck source=/dev/null
+        . /etc/os-release
+        case "${ID:-}-${VERSION_ID:-}" in
+          ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+          ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \\
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
+          debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+          *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
+        esac
+      else
+        CANDIDATES+=("$EXTRAS_BASE/")
       fi
-    else
-      if ! "$VENV_PY" -m pip install "${PIP_FLAGS[@]}" "wxPython==${WX_VERSION}"; then
-        echo "No compatible wxPython ${WX_VERSION} binary wheel found for this distro." >&2
-        echo "Tried indexes: ${CANDIDATES[*]}" >&2
-        echo "Falling back to latest available wheel." >&2
+
+      PIP_FLAGS=("--prefer-binary" "--only-binary=:all:")
+      for url in "${CANDIDATES[@]}"; do
+        PIP_FLAGS+=("-f" "$url")
+      done
+
+      if [[ "${WX_VERSION}" == "latest" ]]; then
         if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
-          echo "Fallback to latest also failed." >&2
+          echo "No compatible wxPython binary wheel found for this distro (latest)." >&2
           exit 1
         fi
+      else
+        if ! "$VENV_PY" -m pip install "${PIP_FLAGS[@]}" "wxPython==${WX_VERSION}"; then
+          echo "No compatible wxPython ${WX_VERSION} binary wheel found for this distro." >&2
+          echo "Tried indexes: ${CANDIDATES[*]}" >&2
+          echo "Falling back to latest available wheel." >&2
+          if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
+            echo "Fallback to latest also failed." >&2
+            exit 1
+          fi
+        fi
       fi
-    fi
-  else
-    if [[ "${WX_VERSION}" == "latest" ]]; then
-      "$VENV_PY" -m pip install -U --prefer-binary --only-binary=:all: wxPython
     else
-      "$VENV_PY" -m pip install --prefer-binary --only-binary=:all: "wxPython==${WX_VERSION}"
+      if [[ "${WX_VERSION}" == "latest" ]]; then
+        "$VENV_PY" -m pip install -U --prefer-binary --only-binary=:all: wxPython
+      else
+        "$VENV_PY" -m pip install --prefer-binary --only-binary=:all: "wxPython==${WX_VERSION}"
+      fi
     fi
   fi
 fi

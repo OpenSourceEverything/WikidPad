@@ -11,28 +11,14 @@ on:
 
 jobs:
   latest:
-    # Use a recent Ubuntu image; wxPython wheels are available here
     runs-on: ubuntu-22.04
     steps:
-      # Check out the repository code
       - uses: actions/checkout@v4
-      # Set up Python 3.10 for this job
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      # Create venv and install dependencies
-      # - Upgrade pip/wheel for reliable builds
-      # - Install the latest released wxPython
-      # - Install project requirements and the package itself (editable)
-      - run: |
-          python -m venv .venv
-          . .venv/bin/activate
-          python -m pip install -U pip wheel
-          pip install -U wxPython
-          pip install -r requirements.txt
-          pip install -e .
-      # Run tests
-      # If available, wrap pytest with xvfb to support GUI-related tests headlessly
-      - run: |
-          . .venv/bin/activate
-          if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a pytest -q; else pytest -q; fi
+      # Use the canonical setup path and latest wx
+      - name: Init (latest wx)
+        run: WX_VERSION=latest make init
+      - name: Tests
+        run: make test

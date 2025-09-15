@@ -2,6 +2,7 @@
 # Cross‑distro OS deps for WikidPad GUI/tests
 # - Best‑effort installs; safe to run repeatedly
 # - If USE_SYSTEM_WX=1, attempt to install wxPython from the OS where available
+# - If FORCE_WX_SOURCE=1, also install development headers for building wxPython
 set -euo pipefail
 
 log()  { printf '[os_deps] %s\n' "$*"; }
@@ -60,6 +61,20 @@ case "$PM" in
       make xvfb xauth libgtk-3-0 libgl1 libnotify4 \
       python3 python3-pip python-is-python3 python3-venv \
       || true
+    # Optional: development headers needed to build wxPython from source
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      $SUDO apt-get install "${APT_FLAGS[@]}" \
+        build-essential g++ make pkg-config \
+        libgtk-3-dev libglib2.0-dev \
+        libgl1-mesa-dev libglu1-mesa-dev \
+        libjpeg-dev libtiff-dev libpng-dev \
+        zlib1g-dev libexpat1-dev libpcre3-dev \
+        libx11-dev libxext-dev libxtst-dev libsm-dev libxrender-dev \
+        libsdl2-dev libnotify-dev \
+        libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+        libcurl4-openssl-dev \
+        || true
+    fi
     # SDL2 runtime (name differs across Ubuntu versions)
     try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
       libsdl2-2.0-0t64 libsdl2-2.0-0 || true
@@ -75,6 +90,17 @@ case "$PM" in
     $SUDO dnf -y install \
       make xorg-x11-server-Xvfb xorg-x11-xauth gtk3 mesa-libGL libnotify \
       python3 python3-pip || true
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      $SUDO dnf -y groupinstall 'Development Tools' || true
+      $SUDO dnf -y install \
+        gtk3-devel mesa-libGL-devel mesa-libGLU-devel \
+        libjpeg-turbo-devel libtiff-devel libpng-devel \
+        zlib-devel expat-devel pcre-devel \
+        libX11-devel libXext-devel libXtst-devel libSM-devel libXrender-devel \
+        SDL2-devel libnotify-devel \
+        gstreamer1-devel gstreamer1-plugins-base-devel \
+        libcurl-devel || true
+    fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
       $SUDO dnf -y install python3-wxpython4 || true
     fi
@@ -84,6 +110,17 @@ case "$PM" in
     $SUDO yum -y install \
       make xorg-x11-server-Xvfb xorg-x11-xauth gtk3 mesa-libGL libnotify \
       python3 python3-pip || true
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      $SUDO yum -y groupinstall 'Development Tools' || true
+      $SUDO yum -y install \
+        gtk3-devel mesa-libGL-devel mesa-libGLU-devel \
+        libjpeg-turbo-devel libtiff-devel libpng-devel \
+        zlib-devel expat-devel pcre-devel \
+        libX11-devel libXext-devel libXtst-devel libSM-devel libXrender-devel \
+        SDL2-devel libnotify-devel \
+        gstreamer1-devel gstreamer1-plugins-base-devel \
+        libcurl-devel || true
+    fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
       $SUDO yum -y install python3-wxpython4 || true
     fi
@@ -94,6 +131,17 @@ case "$PM" in
     $SUDO zypper --non-interactive install -y \
       make xorg-x11-Xvfb xauth gtk3 Mesa-libGL1 libnotify-tools \
       python3 python3-pip || true
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      $SUDO zypper --non-interactive install -y \
+        gcc gcc-c++ make pkg-config \
+        gtk3-devel Mesa-libGL-devel Mesa-libGLU-devel \
+        libjpeg-turbo-devel libtiff-devel libpng-devel \
+        zlib-devel libexpat-devel libpcre-devel \
+        libX11-devel libXext-devel libXtst-devel libSM-devel libXrender-devel \
+        libSDL2-devel libnotify-devel \
+        gstreamer-devel gstreamer-plugins-base-devel \
+        libcurl-devel || true
+    fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
       try_install "$SUDO zypper --non-interactive install -y" \
         python3-wxPython python3-wxWidgets-4_0 python3-wxWidgets-4_1 || true
@@ -105,6 +153,17 @@ case "$PM" in
     $SUDO pacman -S --noconfirm \
       make xorg-server-xvfb xorg-xauth gtk3 mesa libnotify \
       python python-pip || true
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      $SUDO pacman -S --noconfirm \
+        base-devel pkgconf \
+        mesa glu \
+        libjpeg-turbo libtiff libpng \
+        zlib expat pcre \
+        libx11 libxext libxtst libsm libxrender \
+        sdl2 libnotify \
+        gstreamer gst-plugins-base \
+        curl || true
+    fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
       $SUDO pacman -S --noconfirm wxpython || true
     fi
@@ -117,6 +176,9 @@ case "$PM" in
       python3 py3-pip || true
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
       warn "wxPython system package not available on Alpine (skipping)"
+    fi
+    if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
+      warn "Alpine source build deps are not fully covered here; skipping."
     fi
     ;;
 

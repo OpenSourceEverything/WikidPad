@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=WikidPad
+Comment=Personal wiki
+Exec=wikidpad --wiki %f
+Icon=wikidpad
+Terminal=false
+Type=Application
+Categories=Office;Utility;
+MimeType=text/x-wiki;

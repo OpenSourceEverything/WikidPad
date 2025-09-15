@@ -1,8 +1,0 @@
-In my (Michael) working set this directory contains the files
-
-  msvcp100.dll
-  msvcr100.dll
-
-The files are needed to build the Windows binary of WikidPad.
-
-For legal and technical reasons these files are not present in the source distribution.

@@ -1,0 +1,24 @@
+## GitHub Actions: Build wxPython from source (manual)
+## - Manual opt-in job to verify source builds on Ubuntu
+## - Uses the same canonical setup path (scripts/setup.sh) via make init
+## - Enables FORCE_WX_SOURCE=1 to build wx from sdist with dev headers
+name: wx-source
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-from-source:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Init (force source build)
+        env:
+          FORCE_WX_SOURCE: '1'
+          WX_VERSION: latest
+        run: make init
+      - name: Tests
+        run: make test
+

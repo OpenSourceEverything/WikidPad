@@ -1,0 +1,28 @@
+Source: wikidpad
+Section: editors
+Priority: optional
+Maintainer: WikidPad Maintainers <maintainers@example.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ python3-all,
+ python3-setuptools,
+ python3-wheel,
+ python3-wxgtk4.0
+Standards-Version: 4.6.2
+Homepage: http://wikidpad.sourceforge.net/
+Rules-Requires-Root: no
+
+Package: wikidpad
+Architecture: all
+Depends:
+ ${python3:Depends},
+ ${misc:Depends},
+ python3-wxgtk4.0,
+ libgtk-3-0,
+ libgl1,
+ libnotify4
+Description: Personal wiki notepad
+ WikidPad is a single-user desktop wiki for notes and ideas.
+ This package installs the GUI app, desktop entry, icon, and MIME mapping.
+

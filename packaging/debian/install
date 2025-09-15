@@ -1,0 +1,3 @@
+WikidPad/icons/Wikidpad_128x128x32.png usr/share/icons/hicolor/128x128/apps/wikidpad.png
+packaging/debian/wikidpad.desktop usr/share/applications/
+packaging/debian/wikidpad.xml usr/share/mime/packages/

@@ -12,6 +12,12 @@ and is written mostly in Python with wxPython for the GUI.
 - Docs snapshot (Wayback, May 2020):
   https://web.archive.org/web/20200502083222/https://trac.wikidpad2.webfactional.com/wiki/WikiStart
 
+Docs in this repo:
+- docs/INSTALL.md
+- docs/RELEASE.md
+- docs/PROJECT_FILES.md
+- docs/PACKAGING_DEBIAN.md
+
 ## Prerequisites
 
 - Python 3.10+ recommended
@@ -19,49 +25,33 @@ and is written mostly in Python with wxPython for the GUI.
 
 Note: Linux desktops require GUI libraries (e.g., `libgtk-3-0`, `libgl1`).
 
-## Quick Start (recommended)
+## Quick Start (Linux)
 
-This sets up a local virtual environment and a `wikidpad` launcher.
-
-1) Initialize environment
-
-```bash
+```
 make init
-```
-2) Run WikidPad with your wiki file
-
-```bash
-scripts/wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
+scripts/wikidpad --wiki /path/YourWiki/YourWiki.wiki
 ```
 
-3) Optional: install a user-level launcher
+Optional user launcher:
 
-```bash
+```
 make install-user
-# then
-wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
+wikidpad --wiki /path/YourWiki/YourWiki.wiki
 ```
 
-Pipx (optional)
+More: docs/INSTALL.md
 
-```bash
-# If you prefer a pipx-managed isolated install (may be slow on Linux):
-bash scripts/install-user.sh --pipx
-```
+## Make targets (common)
 
-## Make targets
-
-- `make init`          Install system deps + venv (CI-friendly)
-- `make test`          Run test suite (xvfb on Linux if available)
-- `make lint`          Run ruff + black checks (line length 80)
-- `make format`        Auto-format with black
-- `make run WIKI=...`  Launch via `scripts/wikidpad`
-- `make install-user`  Install user launcher (`wikidpad`)
-  - Also installs a user .desktop entry and icon
-  - Associates text/x-wiki with WikidPad (user scope) if possible
-- `make build-bin`     Build a standalone binary (PyInstaller)
-- `make docker-smoke`  Build image and run GUI smoke tests in Docker
-- `make docker-ci`     Build image and run lint + tests in Docker
+- `make init`          Setup venv + deps
+- `make run WIKI=...`  Run via launcher
+- `make install-user`  Install user launcher
+- `make test`          Pytests (xvfb if present)
+- `make tests`         Pytests + install sanity
+- `make test-install`  Install sanity only
+- `make build-bin`     Build PyInstaller app
+- `make release`       Build + package to release/
+- `make docker-matrix` Cross-distro tests in containers
 
 ## Alternative: pipx install
 
@@ -70,12 +60,11 @@ pipx install .
 wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
 ```
 
-## Local CI Parity
+## CI parity
 
-- One command locally (host): `make ci`
-- Cross-distro parity via Docker: `make docker-matrix`
-- CI systems (GitHub Actions, Jenkins, GitLab) call the same matrix script
-  to stay decoupled from provider-specific features.
+- Local: `make ci`
+- Docker matrix: `make docker-matrix`
+- CI calls the same scripts; provider-neutral
 
 ## Testing
 
@@ -100,60 +89,27 @@ wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
   - Deprecation warnings from upstream libraries may appear; tests should
     still pass.
 
-## Version Pinning (wxPython)
+## wx pin (Linux)
 
-- Central pin: `scripts/versions.sh` (env var `WX_VERSION`, default 4.2.1)
-- All flows honor the pin: `scripts/setup.sh` and the Docker-based matrix runner.
-- Test against the latest weekly: `.github/workflows/wx-latest.yml`
+- Pin: `scripts/versions.sh` (`WX_VERSION`)
+- Setup honors pin: `scripts/setup.sh`
+- Latest check: weekly job (wx-latest)
 
-Upgrade steps:
+## Release (Linux)
 
-```bash
-# Try latest in Docker (no repo changes):
-WX_VERSION=latest make docker-ci
-
-# If green, bump the pin everywhere automatically:
-bash scripts/bump-wx.sh 4.2.2
-
-# Verify in Docker:
-make docker-ci
+```
+make release VERSION=vX.Y.Z
 ```
 
-## Cheat Sheet
+Signing: create `scripts/release.env` from example, then
 
-```bash
-# Setup
-make init
-
-# Run
-scripts/wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
-
-# Install user launcher
-make install-user
-wikidpad --wiki /path/to/YourWiki/YourWiki.wiki
-
-# CI locally (host)
-make ci
-
-# CI locally (Docker, all distros)
-make docker-matrix
-
-# Lint/format
-make lint
-make format
-
-# Build binary
-make build-bin
 ```
+make release VERSION=vX.Y.Z SIGN=1
+```
+
+Artifacts in `release/`. Details: docs/RELEASE.md
 
 ## Notes
-
-## Releases
-
-- Linux-only release artifacts are supported today.
-- See `docs/RELEASING.md` for how to version, tag, package, and publish.
-- CI builds and packages artifacts using provider‑neutral scripts under `scripts/`.
- - Artifacts include `SHA256SUMS` and optionally a GPG signature `SHA256SUMS.asc`.
 
 - The command-line accepts either a bare wiki file path (old style) or
   `--wiki /path/to/YourWiki.wiki` (new style). Use the `.wiki` file inside
