@@ -14,6 +14,7 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [--only NAME] [--list]
 Runs 'bash scripts/os_deps.sh && make ci' inside each distro container.
+Rows in distros.list may include optional [platform] and [allow-fail].
 
 Options:
   --only NAME   Run only the named target from distros.list
@@ -108,13 +109,17 @@ run_one() {
 
 FAILS=()
 for row in "${ROWS[@]}"; do
-  # split on whitespace: name image [platform]
-  IFS=' 	' read -r name image platform <<<"$row"
+  # split on whitespace: name image [platform] [allow-fail]
+  IFS=' 	' read -r name image platform allow_fail <<<"$row"
   if [[ -n "$ONLY" && "$name" != "$ONLY" ]]; then
     continue
   fi
   if ! run_one "$name" "$image" "${platform:-}"; then
-    FAILS+=("$name")
+    if [[ "${allow_fail:-}" == "allow-fail" ]]; then
+      echo "::warning::Soft failure for '${name}' (allow-fail)."
+    else
+      FAILS+=("$name")
+    fi
   fi
 done
 
