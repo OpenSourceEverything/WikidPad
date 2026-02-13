@@ -30,6 +30,7 @@ VENV_PY="$VENV_DIR/bin/python"
 
 # 3b) install Python deps (lint/test/dev)
 "$VENV_PY" -m pip install -r "$REPO_DIR/requirements.txt"
+WX_BINARY_WHEEL_FAILED=0
 
 # 4) ensure wxPython is available (binary by default; opt-in source build)
 if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
@@ -64,7 +65,10 @@ PY
       source "$SCRIPT_DIR/versions.sh"
     fi
     : "${WX_VERSION:=4.2.1}"
-    if [[ "$(uname -s)" == "Linux" ]]; then
+    UNAME_S="$(uname -s 2>/dev/null || true)"
+    echo "[setup] uname -s=${UNAME_S}"
+    if [[ "$UNAME_S" == "Linux" || "$UNAME_S" == *"Linux"* ]]; then
+      echo "[setup] using Linux wx extras indexes"
       EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
       # Build a list of candidate extras indexes to avoid source builds on newer LTS
       CANDIDATES=()
@@ -74,15 +78,33 @@ PY
         case "${ID:-}-${VERSION_ID:-}" in
           ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
-          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") ;;
+          debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
-          debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
-          *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
+          arch-*|manjaro-*|endeavouros-*|garuda-*) \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+          *)             CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
+                                CANDIDATES+=("$EXTRAS_BASE/") ;;
         esac
       else
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/")
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/")
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/")
+        CANDIDATES+=("$EXTRAS_BASE/debian-11/")
         CANDIDATES+=("$EXTRAS_BASE/")
       fi
 
@@ -94,7 +116,7 @@ PY
       if [[ "${WX_VERSION}" == "latest" ]]; then
         if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
           echo "No compatible wxPython binary wheel found for this distro (latest)." >&2
-          exit 1
+          WX_BINARY_WHEEL_FAILED=1
         fi
       else
         if ! "$VENV_PY" -m pip install "${PIP_FLAGS[@]}" "wxPython==${WX_VERSION}"; then
@@ -103,11 +125,15 @@ PY
           echo "Falling back to latest available wheel." >&2
           if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
             echo "Fallback to latest also failed." >&2
-            exit 1
+            WX_BINARY_WHEEL_FAILED=1
           fi
         fi
       fi
+      if [[ "$WX_BINARY_WHEEL_FAILED" == "1" ]]; then
+        echo "Will continue and try system wxPython fallback in step 6." >&2
+      fi
     else
+      echo "Non-Linux platform detected from uname -s='$UNAME_S'; using default pip indexes." >&2
       if [[ "${WX_VERSION}" == "latest" ]]; then
         "$VENV_PY" -m pip install -U --prefer-binary --only-binary=:all: wxPython
       else
@@ -117,8 +143,11 @@ PY
   fi
 fi
 
+echo "[setup] wx step complete"
+
 # 5) install project for entrypoints
 "$VENV_PY" -m pip install -e "$REPO_DIR"
+echo "[setup] editable install complete"
 
 # 6) confirm wx is importable; if not, fall back to system wx (auto)
 if ! "$VENV_PY" - <<'PY'

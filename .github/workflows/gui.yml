@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       USE_SYSTEM_WX: '1'
+      FORCE_WX_SOURCE: '0'
     steps:
       # Checkout source code
       - uses: actions/checkout@v4
