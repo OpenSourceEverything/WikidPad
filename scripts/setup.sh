@@ -65,7 +65,8 @@ PY
       source "$SCRIPT_DIR/versions.sh"
     fi
     : "${WX_VERSION:=4.2.1}"
-    if [[ "$(uname -s)" == "Linux" ]]; then
+    UNAME_S="$(uname -s 2>/dev/null || true)"
+    if [[ "$UNAME_S" == "Linux" || "$UNAME_S" == *"Linux"* ]]; then
       EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
       # Build a list of candidate extras indexes to avoid source builds on newer LTS
       CANDIDATES=()
@@ -130,6 +131,7 @@ PY
         echo "Will continue and try system wxPython fallback in step 6." >&2
       fi
     else
+      echo "Non-Linux platform detected from uname -s='$UNAME_S'; using default pip indexes." >&2
       if [[ "${WX_VERSION}" == "latest" ]]; then
         "$VENV_PY" -m pip install -U --prefer-binary --only-binary=:all: wxPython
       else
