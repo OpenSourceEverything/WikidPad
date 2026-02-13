@@ -109,6 +109,7 @@ if [[ -n "$ONLY" && ${#FAILS[@]} -eq 1 ]]; then
 fi
 
 if [[ ${#FAILS[@]} -gt 0 ]]; then
+  echo "::error::Failures: ${FAILS[*]}"
   echo "Failures: ${FAILS[*]}" >&2
   exit 1
 fi
