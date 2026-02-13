@@ -66,7 +66,9 @@ PY
     fi
     : "${WX_VERSION:=4.2.1}"
     UNAME_S="$(uname -s 2>/dev/null || true)"
+    echo "[setup] uname -s=${UNAME_S}"
     if [[ "$UNAME_S" == "Linux" || "$UNAME_S" == *"Linux"* ]]; then
+      echo "[setup] using Linux wx extras indexes"
       EXTRAS_BASE="https://extras.wxpython.org/wxPython4/extras/linux/gtk3"
       # Build a list of candidate extras indexes to avoid source builds on newer LTS
       CANDIDATES=()
