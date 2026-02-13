@@ -58,11 +58,11 @@ if [[ "$LIST" -eq 1 ]]; then
 fi
 
 run_one() {
-  local name="$1" image="$2"
+  local name="$1" image="$2" platform="${3:-}"
   local run_rc=0
   local log_dir="$REPO_DIR/artifacts-matrix/$name"
   local log_file="$log_dir/docker.log"
-  echo "=== [${name}] image=${image} ==="
+  echo "=== [${name}] image=${image} ${platform:+platform=${platform}} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
   mkdir -p "$log_dir"
@@ -70,15 +70,21 @@ run_one() {
   # Restore file ownership on the mounted repo before exit.
   HOST_UID="$(id -u)"
   HOST_GID="$(id -g)"
-  docker run --rm -t \
-    -v "$REPO_DIR":/app -w /app \
-    -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
-    -e FORCE_WX_SOURCE=0 \
-    -e WX_VERSION="${WX_VERSION:-latest}" \
-    -e VENV="/tmp/venv-${name}" \
-    -e HOST_UID="$HOST_UID" \
-    -e HOST_GID="$HOST_GID" \
-    "$image" \
+  DOCKER_ARGS=(run --rm -t)
+  if [[ -n "$platform" ]]; then
+    DOCKER_ARGS+=(--platform "$platform")
+  fi
+  DOCKER_ARGS+=(
+    -v "$REPO_DIR":/app -w /app
+    -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}"
+    -e FORCE_WX_SOURCE=0
+    -e WX_VERSION="${WX_VERSION:-latest}"
+    -e VENV="/tmp/venv-${name}"
+    -e HOST_UID="$HOST_UID"
+    -e HOST_GID="$HOST_GID"
+    "$image"
+  )
+  docker "${DOCKER_ARGS[@]}" \
     bash -lc '
       rc=0
       bash scripts/os_deps.sh && make ci || rc=$?
@@ -103,12 +109,12 @@ run_one() {
 
 FAILS=()
 for row in "${ROWS[@]}"; do
-  # split on whitespace: name image (collapse multiple spaces)
-  IFS=' 	' read -r name image <<<"$row"
+  # split on whitespace: name image [platform]
+  IFS=' 	' read -r name image platform <<<"$row"
   if [[ -n "$ONLY" && "$name" != "$ONLY" ]]; then
     continue
   fi
-  if ! run_one "$name" "$image"; then
+  if ! run_one "$name" "$image" "${platform:-}"; then
     FAILS+=("$name")
   fi
 done
