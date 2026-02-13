@@ -59,8 +59,11 @@ case "$PM" in
     $SUDO apt-get update -y -q || true
     $SUDO apt-get install "${APT_FLAGS[@]}" \
       make xvfb xauth libgtk-3-0 libgl1 libnotify4 \
-      python3 python3-pip python-is-python3 python3-venv \
+      python3 python3-pip python3-venv \
       || true
+    # Optional convenience package; not present on all Debian releases.
+    try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
+      python-is-python3 || true
     # Optional: development headers needed to build wxPython from source
     if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
       $SUDO apt-get install "${APT_FLAGS[@]}" \
@@ -79,7 +82,7 @@ case "$PM" in
     try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
       libsdl2-2.0-0t64 libsdl2-2.0-0 || true
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
+      $SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install "${APT_FLAGS[@]}" \
         python3-wxgtk4.0 || true
     fi
     # Clean up the no-start policy if we created it
@@ -149,8 +152,11 @@ case "$PM" in
     ;;
 
   pacman)
-    $SUDO pacman -Sy --noconfirm || true
-    $SUDO pacman -S --noconfirm \
+    # Arch does not support partial upgrades; sync + upgrade before installs.
+    # Refresh keyring first to avoid signature errors in fresh containers.
+    $SUDO pacman -Syu --noconfirm --needed archlinux-keyring || true
+    $SUDO pacman -Syu --noconfirm --needed \
+      ca-certificates \
       make xorg-server-xvfb xorg-xauth gtk3 mesa libnotify \
       python python-pip || true
     if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
@@ -165,7 +171,8 @@ case "$PM" in
         curl || true
     fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      $SUDO pacman -S --noconfirm wxpython || true
+      $SUDO pacman -S --noconfirm --needed python-wxpython || \
+        $SUDO pacman -S --noconfirm --needed wxpython || true
     fi
     ;;
 

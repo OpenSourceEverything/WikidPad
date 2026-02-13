@@ -14,6 +14,7 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [--only NAME] [--list]
 Runs 'bash scripts/os_deps.sh && make ci' inside each distro container.
+Rows in distros.list may include optional [platform] and [allow-fail].
 
 Options:
   --only NAME   Run only the named target from distros.list
@@ -58,39 +59,67 @@ if [[ "$LIST" -eq 1 ]]; then
 fi
 
 run_one() {
-  local name="$1" image="$2"
+  local name="$1" image="$2" platform="${3:-}"
   local run_rc=0
-  echo "=== [${name}] image=${image} ==="
+  local log_dir="$REPO_DIR/artifacts-matrix/$name"
+  local log_file="$log_dir/docker.log"
+  echo "=== [${name}] image=${image} ${platform:+platform=${platform}} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
-  # Run container as host user to avoid root-owned artifacts on the mount
-  DOCKER_UIDGID="$(id -u):$(id -g)"
-  docker run --rm -t \
-    -u "$DOCKER_UIDGID" \
-    -v "$REPO_DIR":/app -w /app \
-    -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
-    -e VENV="/tmp/venv-${name}" \
-    "$image" \
-    bash -lc 'bash scripts/os_deps.sh && make ci' || run_rc=$?
+  mkdir -p "$log_dir"
+  # Run as root so os_deps.sh can install distro packages even when sudo is absent.
+  # Restore file ownership on the mounted repo before exit.
+  HOST_UID="$(id -u)"
+  HOST_GID="$(id -g)"
+  DOCKER_ARGS=(run --rm -t)
+  if [[ -n "$platform" ]]; then
+    DOCKER_ARGS+=(--platform "$platform")
+  fi
+  DOCKER_ARGS+=(
+    -v "$REPO_DIR":/app -w /app
+    -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}"
+    -e FORCE_WX_SOURCE=0
+    -e WX_VERSION="${WX_VERSION:-latest}"
+    -e HOST_UID="$HOST_UID"
+    -e HOST_GID="$HOST_GID"
+    "$image"
+  )
+  docker "${DOCKER_ARGS[@]}" \
+    bash -lc '
+      rc=0
+      bash scripts/os_deps.sh && make ci || rc=$?
+      chown -R "${HOST_UID}:${HOST_GID}" /app >/dev/null 2>&1 || true
+      exit "$rc"
+    ' >"$log_file" 2>&1 || run_rc=$?
+  cat "$log_file"
+  if [[ "$run_rc" -ne 0 ]]; then
+    phase="$(grep -Eo '\[ci\] [a-z]+' "$log_file" | tail -n 1 | sed 's/\[ci\] //')"
+    hint="$(tail -n 3 "$log_file" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g' || true)"
+    if [[ -z "${hint:-}" || "$hint" =~ make:\ \*\*\* ]]; then
+      hint="$(grep -Ei 'wx import failed|No matching distribution found|ERROR: Could not|ModuleNotFoundError|Traceback|Fallback to latest also failed|wxPython import still failing|unbound variable|command not found|No such file or directory|Permission denied|^E: |error:' "$log_file" | tail -n 1 || true)"
+    fi
+    echo "::error::[${name}] failed (rc=${run_rc}, phase=${phase:-unknown}) ${hint}"
+  fi
   # Collect artifacts per distro to avoid overwrites
   if [[ -d "$REPO_DIR/artifacts" ]]; then
-    mkdir -p "$REPO_DIR/artifacts-matrix/$name"
-    mv "$REPO_DIR/artifacts" "$REPO_DIR/artifacts-matrix/$name/" || true
-  else
-    mkdir -p "$REPO_DIR/artifacts-matrix/$name"
+    mv "$REPO_DIR/artifacts" "$log_dir/" || true
   fi
   return "$run_rc"
 }
 
 FAILS=()
 for row in "${ROWS[@]}"; do
-  # split on whitespace: name image (collapse multiple spaces)
-  IFS=' 	' read -r name image <<<"$row"
+  # split on whitespace: name image [platform] [allow-fail]
+  IFS=' 	' read -r name image platform allow_fail <<<"$row"
   if [[ -n "$ONLY" && "$name" != "$ONLY" ]]; then
     continue
   fi
-  if ! run_one "$name" "$image"; then
-    FAILS+=("$name")
+  if ! run_one "$name" "$image" "${platform:-}"; then
+    if [[ "${allow_fail:-}" == "allow-fail" ]]; then
+      echo "::warning::Soft failure for '${name}' (allow-fail)."
+    else
+      FAILS+=("$name")
+    fi
   fi
 done
 
@@ -100,6 +129,7 @@ if [[ -n "$ONLY" && ${#FAILS[@]} -eq 1 ]]; then
 fi
 
 if [[ ${#FAILS[@]} -gt 0 ]]; then
+  echo "::error::Failures: ${FAILS[*]}"
   echo "Failures: ${FAILS[*]}" >&2
   exit 1
 fi
