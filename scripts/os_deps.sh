@@ -59,8 +59,11 @@ case "$PM" in
     $SUDO apt-get update -y -q || true
     $SUDO apt-get install "${APT_FLAGS[@]}" \
       make xvfb xauth libgtk-3-0 libgl1 libnotify4 \
-      python3 python3-pip python-is-python3 python3-venv \
+      python3 python3-pip python3-venv \
       || true
+    # Optional convenience package; not present on all Debian releases.
+    try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
+      python-is-python3 || true
     # Optional: development headers needed to build wxPython from source
     if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
       $SUDO apt-get install "${APT_FLAGS[@]}" \
