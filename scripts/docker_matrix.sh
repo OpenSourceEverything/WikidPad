@@ -85,11 +85,12 @@ run_one() {
     ' >"$log_file" 2>&1 || run_rc=$?
   cat "$log_file"
   if [[ "$run_rc" -ne 0 ]]; then
+    phase="$(grep -Eo '\[ci\] [a-z]+' "$log_file" | tail -n 1 | sed 's/\[ci\] //')"
     hint="$(grep -E 'wx import failed|No matching distribution found|ERROR: Could not|ModuleNotFoundError|Traceback|make: \\*\\*\\*' "$log_file" | tail -n 1 || true)"
     if [[ -z "${hint:-}" ]]; then
       hint="$(tail -n 1 "$log_file" || true)"
     fi
-    echo "::error::[${name}] failed (rc=${run_rc}) ${hint}"
+    echo "::error::[${name}] failed (rc=${run_rc}, phase=${phase:-unknown}) ${hint}"
   fi
   # Collect artifacts per distro to avoid overwrites
   if [[ -d "$REPO_DIR/artifacts" ]]; then
