@@ -82,7 +82,7 @@ case "$PM" in
     try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
       libsdl2-2.0-0t64 libsdl2-2.0-0 || true
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      try_install "$SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install ${APT_FLAGS[*]}" \
+      $SUDO env DEBIAN_FRONTEND=noninteractive TZ=$TZ apt-get install "${APT_FLAGS[@]}" \
         python3-wxgtk4.0 || true
     fi
     # Clean up the no-start policy if we created it
@@ -170,8 +170,8 @@ case "$PM" in
         curl || true
     fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      try_install "$SUDO pacman -S --noconfirm" \
-        python-wxpython wxpython || true
+      $SUDO pacman -S --noconfirm python-wxpython || \
+        $SUDO pacman -S --noconfirm wxpython || true
     fi
     ;;
 

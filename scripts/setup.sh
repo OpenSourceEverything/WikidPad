@@ -75,25 +75,32 @@ PY
         case "${ID:-}-${VERSION_ID:-}" in
           ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           debian-12*)    CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
-                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") ;;
           debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
           arch-*|manjaro-*|endeavouros-*|garuda-*) \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           *)             CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
                                 CANDIDATES+=("$EXTRAS_BASE/") ;;
         esac
       else
         CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/")
         CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/")
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-20.04/")
         CANDIDATES+=("$EXTRAS_BASE/debian-11/")
         CANDIDATES+=("$EXTRAS_BASE/")
       fi
