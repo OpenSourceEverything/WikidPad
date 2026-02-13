@@ -30,6 +30,7 @@ VENV_PY="$VENV_DIR/bin/python"
 
 # 3b) install Python deps (lint/test/dev)
 "$VENV_PY" -m pip install -r "$REPO_DIR/requirements.txt"
+WX_BINARY_WHEEL_FAILED=0
 
 # 4) ensure wxPython is available (binary by default; opt-in source build)
 if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
@@ -74,15 +75,26 @@ PY
         case "${ID:-}-${VERSION_ID:-}" in
           ubuntu-24.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
-                                CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
-          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
-          debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
-          *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
+          debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
+          arch-*|manjaro-*|endeavouros-*|garuda-*) \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
+          *)             CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
+                                CANDIDATES+=("$EXTRAS_BASE/debian-11/") \
+                                CANDIDATES+=("$EXTRAS_BASE/") ;;
         esac
       else
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-24.04/")
+        CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/")
+        CANDIDATES+=("$EXTRAS_BASE/debian-11/")
         CANDIDATES+=("$EXTRAS_BASE/")
       fi
 
@@ -94,7 +106,7 @@ PY
       if [[ "${WX_VERSION}" == "latest" ]]; then
         if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
           echo "No compatible wxPython binary wheel found for this distro (latest)." >&2
-          exit 1
+          WX_BINARY_WHEEL_FAILED=1
         fi
       else
         if ! "$VENV_PY" -m pip install "${PIP_FLAGS[@]}" "wxPython==${WX_VERSION}"; then
@@ -103,9 +115,12 @@ PY
           echo "Falling back to latest available wheel." >&2
           if ! "$VENV_PY" -m pip install -U "${PIP_FLAGS[@]}" wxPython; then
             echo "Fallback to latest also failed." >&2
-            exit 1
+            WX_BINARY_WHEEL_FAILED=1
           fi
         fi
+      fi
+      if [[ "$WX_BINARY_WHEEL_FAILED" == "1" ]]; then
+        echo "Will continue and try system wxPython fallback in step 6." >&2
       fi
     else
       if [[ "${WX_VERSION}" == "latest" ]]; then

@@ -63,15 +63,23 @@ run_one() {
   echo "=== [${name}] image=${image} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
-  # Run container as host user to avoid root-owned artifacts on the mount
-  DOCKER_UIDGID="$(id -u):$(id -g)"
+  # Run as root so os_deps.sh can install distro packages even when sudo is absent.
+  # Restore file ownership on the mounted repo before exit.
+  HOST_UID="$(id -u)"
+  HOST_GID="$(id -g)"
   docker run --rm -t \
-    -u "$DOCKER_UIDGID" \
     -v "$REPO_DIR":/app -w /app \
     -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
     -e VENV="/tmp/venv-${name}" \
+    -e HOST_UID="$HOST_UID" \
+    -e HOST_GID="$HOST_GID" \
     "$image" \
-    bash -lc 'bash scripts/os_deps.sh && make ci' || run_rc=$?
+    bash -lc '
+      rc=0
+      bash scripts/os_deps.sh && make ci || rc=$?
+      chown -R "${HOST_UID}:${HOST_GID}" /app >/dev/null 2>&1 || true
+      exit "$rc"
+    ' || run_rc=$?
   # Collect artifacts per distro to avoid overwrites
   if [[ -d "$REPO_DIR/artifacts" ]]; then
     mkdir -p "$REPO_DIR/artifacts-matrix/$name"
