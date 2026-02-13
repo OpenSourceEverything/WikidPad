@@ -149,6 +149,8 @@ case "$PM" in
     ;;
 
   pacman)
+    # Refresh keyring first to avoid signature errors in fresh Arch containers.
+    $SUDO pacman -Sy --noconfirm --needed archlinux-keyring || true
     $SUDO pacman -Sy --noconfirm || true
     $SUDO pacman -S --noconfirm \
       make xorg-server-xvfb xorg-xauth gtk3 mesa libnotify \
@@ -165,7 +167,8 @@ case "$PM" in
         curl || true
     fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      $SUDO pacman -S --noconfirm wxpython || true
+      try_install "$SUDO pacman -S --noconfirm" \
+        python-wxpython wxpython || true
     fi
     ;;
 

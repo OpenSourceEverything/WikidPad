@@ -60,9 +60,12 @@ fi
 run_one() {
   local name="$1" image="$2"
   local run_rc=0
+  local log_dir="$REPO_DIR/artifacts-matrix/$name"
+  local log_file="$log_dir/docker.log"
   echo "=== [${name}] image=${image} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
+  mkdir -p "$log_dir"
   # Run as root so os_deps.sh can install distro packages even when sudo is absent.
   # Restore file ownership on the mounted repo before exit.
   HOST_UID="$(id -u)"
@@ -79,13 +82,11 @@ run_one() {
       bash scripts/os_deps.sh && make ci || rc=$?
       chown -R "${HOST_UID}:${HOST_GID}" /app >/dev/null 2>&1 || true
       exit "$rc"
-    ' || run_rc=$?
+    ' >"$log_file" 2>&1 || run_rc=$?
+  cat "$log_file"
   # Collect artifacts per distro to avoid overwrites
   if [[ -d "$REPO_DIR/artifacts" ]]; then
-    mkdir -p "$REPO_DIR/artifacts-matrix/$name"
-    mv "$REPO_DIR/artifacts" "$REPO_DIR/artifacts-matrix/$name/" || true
-  else
-    mkdir -p "$REPO_DIR/artifacts-matrix/$name"
+    mv "$REPO_DIR/artifacts" "$log_dir/" || true
   fi
   return "$run_rc"
 }
