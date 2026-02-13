@@ -79,7 +79,6 @@ run_one() {
     -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}"
     -e FORCE_WX_SOURCE=0
     -e WX_VERSION="${WX_VERSION:-latest}"
-    -e VENV="/tmp/venv-${name}"
     -e HOST_UID="$HOST_UID"
     -e HOST_GID="$HOST_GID"
     "$image"
