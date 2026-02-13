@@ -59,6 +59,7 @@ fi
 
 run_one() {
   local name="$1" image="$2"
+  local run_rc=0
   echo "=== [${name}] image=${image} ==="
   # Remove any host venv to avoid cross-distro contamination
   rm -rf "$REPO_DIR/.venv" || true
@@ -70,7 +71,7 @@ run_one() {
     -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
     -e VENV="/tmp/venv-${name}" \
     "$image" \
-    bash -lc 'bash scripts/os_deps.sh && make ci'
+    bash -lc 'bash scripts/os_deps.sh && make ci' || run_rc=$?
   # Collect artifacts per distro to avoid overwrites
   if [[ -d "$REPO_DIR/artifacts" ]]; then
     mkdir -p "$REPO_DIR/artifacts-matrix/$name"
@@ -78,6 +79,7 @@ run_one() {
   else
     mkdir -p "$REPO_DIR/artifacts-matrix/$name"
   fi
+  return "$run_rc"
 }
 
 FAILS=()

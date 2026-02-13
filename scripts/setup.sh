@@ -77,7 +77,7 @@ PY
                                 CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
           ubuntu-22.04*) CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") \
                                 CANDIDATES+=("$EXTRAS_BASE/debian-12/") ;;
-          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \\
+          debian-12*)    CANDIDATES+=("$EXTRAS_BASE/debian-12/") \
                                 CANDIDATES+=("$EXTRAS_BASE/ubuntu-22.04/") ;;
           debian-11*)    CANDIDATES+=("$EXTRAS_BASE/debian-11/") ;;
           *)             CANDIDATES+=("$EXTRAS_BASE/") ;;
