@@ -89,7 +89,7 @@ run_one() {
     phase="$(grep -Eo '\[ci\] [a-z]+' "$log_file" | tail -n 1 | sed 's/\[ci\] //')"
     hint="$(grep -Ei 'wx import failed|No matching distribution found|ERROR: Could not|ModuleNotFoundError|Traceback|Fallback to latest also failed|wxPython import still failing|unbound variable|command not found|No such file or directory|Permission denied|^E: |error:' "$log_file" | tail -n 1 || true)"
     if [[ -z "${hint:-}" ]]; then
-      hint="$(tail -n 20 "$log_file" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g' || true)"
+      hint="$(tail -n 3 "$log_file" | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g' || true)"
     fi
     echo "::error::[${name}] failed (rc=${run_rc}, phase=${phase:-unknown}) ${hint}"
   fi
