@@ -73,6 +73,7 @@ run_one() {
   docker run --rm -t \
     -v "$REPO_DIR":/app -w /app \
     -e USE_SYSTEM_WX="${USE_SYSTEM_WX:-1}" \
+    -e FORCE_WX_SOURCE=0 \
     -e VENV="/tmp/venv-${name}" \
     -e HOST_UID="$HOST_UID" \
     -e HOST_GID="$HOST_GID" \
