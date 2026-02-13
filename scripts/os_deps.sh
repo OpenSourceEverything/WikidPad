@@ -152,10 +152,11 @@ case "$PM" in
     ;;
 
   pacman)
-    # Refresh keyring first to avoid signature errors in fresh Arch containers.
-    $SUDO pacman -Sy --noconfirm --needed archlinux-keyring || true
-    $SUDO pacman -Sy --noconfirm || true
-    $SUDO pacman -S --noconfirm \
+    # Arch does not support partial upgrades; sync + upgrade before installs.
+    # Refresh keyring first to avoid signature errors in fresh containers.
+    $SUDO pacman -Syu --noconfirm --needed archlinux-keyring || true
+    $SUDO pacman -Syu --noconfirm --needed \
+      ca-certificates \
       make xorg-server-xvfb xorg-xauth gtk3 mesa libnotify \
       python python-pip || true
     if [[ "${FORCE_WX_SOURCE:-}" == "1" ]]; then
@@ -170,8 +171,8 @@ case "$PM" in
         curl || true
     fi
     if [[ "${USE_SYSTEM_WX:-}" == "1" ]]; then
-      $SUDO pacman -S --noconfirm python-wxpython || \
-        $SUDO pacman -S --noconfirm wxpython || true
+      $SUDO pacman -S --noconfirm --needed python-wxpython || \
+        $SUDO pacman -S --noconfirm --needed wxpython || true
     fi
     ;;
 
