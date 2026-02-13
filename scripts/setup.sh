@@ -141,8 +141,11 @@ PY
   fi
 fi
 
+echo "[setup] wx step complete"
+
 # 5) install project for entrypoints
 "$VENV_PY" -m pip install -e "$REPO_DIR"
+echo "[setup] editable install complete"
 
 # 6) confirm wx is importable; if not, fall back to system wx (auto)
 if ! "$VENV_PY" - <<'PY'
