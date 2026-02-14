@@ -23,7 +23,6 @@ PY
 
 echo "[test-install] launcher present"
 test -x "$REPO_DIR/scripts/wikidpad"
-grep -q "python -m WikidPad.WikidPadStarter" "$REPO_DIR/scripts/wikidpad"
+grep -q 'python "$REPO_DIR/WikidPad.py"' "$REPO_DIR/scripts/wikidpad"
 
 echo "[test-install] ok"
-

@@ -2,14 +2,15 @@ import os
 import stat
 
 
-def test_launcher_exists_and_invokes_module():
+def test_launcher_exists_and_invokes_entrypoint():
     path = os.path.join("scripts", "wikidpad")
     assert os.path.isfile(path)
     st = os.stat(path)
     assert st.st_mode & stat.S_IXUSR
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
-    assert "python -m WikidPad.WikidPadStarter" in content
+    assert 'python "$REPO_DIR/WikidPad.py"' in content
+    assert "python -m WikidPad.WikidPadStarter" not in content
 
 
 def test_setup_pins_wxpython():
@@ -34,6 +35,8 @@ def test_setup_entrypoint_declared():
         "wikidpad = WikidPad.WikidPadStarter:main" in content
         or "'wikidpad = WikidPad.WikidPadStarter:main'" in content
     )
+    assert "install_requires" in content
+    assert "six" in content
 
 
 def test_release_workflow_present():

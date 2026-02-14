@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Thin launcher for local development.
 # - Ensures .venv exists (created by scripts/setup.sh)
-# - Activates it and runs the GUI entrypoint: python -m WikidPad.WikidPadStarter
+# - Activates it and runs the GUI entrypoint via WikidPad.py (calls main()).
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="$REPO_DIR/.venv"
@@ -14,4 +14,10 @@ if [[ ! -d "$VENV_DIR" ]]; then
 fi
 
 source "$VENV_DIR/bin/activate"
-exec python -m WikidPad.WikidPadStarter "$@"
+
+# Container-friendly default: use GUI_DISPLAY (or :99) when DISPLAY is unset.
+if [[ -z "${DISPLAY:-}" ]]; then
+  export DISPLAY="${GUI_DISPLAY:-:99}"
+fi
+
+exec python "$REPO_DIR/WikidPad.py" "$@"

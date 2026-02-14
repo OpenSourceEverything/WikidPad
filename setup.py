@@ -37,6 +37,9 @@ setup(
     # wxPython is intentionally not listed in install_requires.
     # It is installed via scripts/setup.sh to ensure binary wheels are used
     # on Linux and to honor centralized version pinning.
+    install_requires=[
+        "six",
+    ],
     include_package_data=False,
     package_data={
         "WikidPad": ["*"],
