@@ -46,7 +46,11 @@ from . import AdditionalDialogs
 from . import WikiTxtDialogs
 
 # image stuff
-import imghdr
+try:
+    import imghdr
+except ModuleNotFoundError:
+    # Python 3.13 removed stdlib imghdr (PEP 594).
+    from . import _imghdr_compat as imghdr
 
 
 # import WikiFormatting
