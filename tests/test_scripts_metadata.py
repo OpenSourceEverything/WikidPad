@@ -35,6 +35,8 @@ def test_setup_entrypoint_declared():
         "wikidpad = WikidPad.WikidPadStarter:main" in content
         or "'wikidpad = WikidPad.WikidPadStarter:main'" in content
     )
+    assert "install_requires" in content
+    assert "six" in content
 
 
 def test_release_workflow_present():
