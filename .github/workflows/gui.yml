@@ -3,7 +3,10 @@
 ## - Executes scripts/docker_matrix.sh to test across distros listed in scripts/distros.list
 ## - Uploads GUI test artifacts (screenshots/logs) per distro under artifacts-matrix/
 name: gui
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 jobs:
   linux-matrix-via-docker:
     runs-on: ubuntu-latest
