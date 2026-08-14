@@ -1,15 +1,18 @@
 
 
+import importlib
+import importlib.machinery
+import importlib.util
+import os.path
+import sys
+import traceback
+import zipfile
+from functools import reduce
 from zipimport import zipimporter
-import sys, traceback, os.path
 
 import wx
 
-import importlib
-import importlib.util
-
 from .StringOps import mbcsEnc
-from functools import reduce
 
 
 """The PluginManager and PluginAPI classes implement a generic plugin framework.
@@ -360,11 +363,18 @@ class PluginManager:
                                 spec.loader.exec_module(module)
                         elif ext == '.zip':
                             if zipfile.is_zipfile(fullname):
-                                module = importlib.util.module_from_spec(
-                                    importlib.machinery.ModuleSpec(packageName + "." + moduleName, None))
-                                module.__path__ = [fullname]
-                                sys.modules[packageName + "." + moduleName] = module
                                 zi = zipimporter(fullname)
+                                # ZIP plugins are packages whose __init__.py
+                                # may import sibling modules.
+                                spec = importlib.machinery.ModuleSpec(
+                                    packageName + "." + moduleName, zi,
+                                    is_package=True)
+                                module = importlib.util.module_from_spec(
+                                    spec)
+                                module.__path__ = [fullname]
+                                # This is part of the documented ZIP-plugin API.
+                                module.__zippath__ = fullname
+                                sys.modules[packageName + "." + moduleName] = module
                                 co = zi.get_code("__init__")
                                 exec(co, module.__dict__)
 
@@ -372,7 +382,7 @@ class PluginManager:
                         setattr(package, moduleName, module)
                         if hasattr(module, "WIKIDPAD_PLUGIN"):
                             self.registerPlugin(module)
-                except Exception as e:
+                except Exception:
                     traceback.print_exc()
 
     def loadPluginsPackageManaged(self):

@@ -79,7 +79,6 @@ import copy, time
 import sys
 import warnings
 import re
-import sre_constants
 import traceback
 
 from .Utilities import DUMBTHREADSTOP
@@ -2332,7 +2331,7 @@ class Regex(Token, NecessaryRegexProvider):
         try:
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
-        except sre_constants.error:
+        except re.error:
             warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
                 SyntaxWarning, stacklevel=2)
             raise
@@ -2455,7 +2454,7 @@ class QuotedString(Token, NecessaryRegexProvider):
         try:
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
-        except sre_constants.error:
+        except re.error:
             warnings.warn("invalid pattern (%s) passed to Regex" % self.pattern,
                 SyntaxWarning, stacklevel=2)
             raise
@@ -2497,7 +2496,7 @@ class QuotedString(Token, NecessaryRegexProvider):
             if isinstance(ret,str):
                 # replace escaped characters
                 if self.escChar:
-                    ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
+                    ret = re.sub(self.escCharReplacePattern, r"\g<1>", ret)
 
                 # replace escaped quotes
                 if self.escQuote:

@@ -148,7 +148,7 @@ def splitquery(url):
     global _queryprog
     if _queryprog is None:
         import re # import pwiki.srePersistent as reimport pwiki.srePersistent as _re
-        _queryprog = re.compile('^(.*)\?([^?]*)$')
+        _queryprog = re.compile(r'^(.*)\?([^?]*)$')
 
     match = _queryprog.match(url)
     if match: return match.group(1, 2)
@@ -356,4 +356,3 @@ def test1():
     print(repr(qs))
     print(repr(uqs))
     print(round(t1 - t0, 3), 'sec')
-

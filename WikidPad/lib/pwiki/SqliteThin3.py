@@ -2,6 +2,7 @@
 
 import codecs, types, traceback, sys, os, platform, re
 from ctypes import *
+from ctypes.util import find_library
 
 
 
@@ -90,16 +91,42 @@ class SqliteError3(Exception):
         return "SqliteError "+str(self.err)
 
 
-if isLinux():
-    if sys.hexversion >= 0x02050000:
-        _dll = CDLL("libsqlite3.so.0")
-    else:
-        _dll = CDLL("libsqlite3.so")
-elif platform.uname()[0] == "Darwin":
-    # Mac OS 9 (or 9.1.0 specifically?)
-    _dll = CDLL("libsqlite3.0.dylib")
-else:
-    _dll = cdll.sqlite3
+def _loadSqliteDll():
+    if isLinux():
+        if sys.hexversion >= 0x02050000:
+            return CDLL("libsqlite3.so.0")
+        else:
+            return CDLL("libsqlite3.so")
+    elif platform.uname()[0] == "Darwin":
+        # Mac OS 9 (or 9.1.0 specifically?)
+        return CDLL("libsqlite3.0.dylib")
+
+    found = find_library("sqlite3")
+    if found is not None:
+        try:
+            return CDLL(found)
+        except OSError:
+            pass
+
+    for base in (sys.base_prefix, sys.exec_prefix,
+            os.path.dirname(sys.executable)):
+        dllPath = os.path.join(base, "DLLs", "sqlite3.dll")
+        if os.path.exists(dllPath):
+            try:
+                return CDLL(dllPath)
+            except OSError:
+                pass
+
+    return cdll.sqlite3
+
+
+_dll = _loadSqliteDll()
+
+_dll.sqlite3_initialize.argtypes = ()
+_dll.sqlite3_initialize.restype = c_int
+_initResult = _dll.sqlite3_initialize()
+if _initResult != SQLITE_OK:
+    raise SqliteError3(_initResult)
 
 
 
@@ -821,5 +848,3 @@ def _pyFuncCallback(contextptr, nValues, valueptrptr):
 
         
 _FUNC_CALLBACK = FUNC_CALLBACK_TYPE(_pyFuncCallback)
-
-

@@ -700,8 +700,12 @@ camelCaseWordsEnabled: false;a=[camelCaseWordsEnabled: false]\\n
 
         lcut = label.split("\t", 1)
         if len(lcut) > 1:
-            lcut[1] = self.translateMenuAccelerator(lcut[1])
-            label = lcut[0] + " \t" + lcut[1]
+            shortcut = lcut[1].strip()
+            if shortcut:
+                shortcut = self.translateMenuAccelerator(shortcut)
+                label = lcut[0] + " \t" + shortcut
+            else:
+                label = lcut[0]
 
 
         menuitem = wx.MenuItem(menu, menuID, label + " ", hint, kind)

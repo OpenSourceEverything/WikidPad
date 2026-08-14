@@ -63,7 +63,7 @@ setup(
             "WikidPad.WikidPadHelp.files",
         ],
     
-    install_requires =["wxpython>=4.2"],
+    install_requires = ["wxpython>=4.2", "filetype>=1.2", "six>=1.17"],
     
     include_package_data=False,
     package_data={
@@ -88,7 +88,7 @@ setup(
                  'Intended Audience :: End Users/Desktop',
                  'Operating System :: OS Independent',
                  'License :: OSI Approved :: BSD License',
-                 'Programming Language :: Python :: 3.4',
+                 'Programming Language :: Python :: 3.14',
                  'Topic :: Office/Business',],
 
 )

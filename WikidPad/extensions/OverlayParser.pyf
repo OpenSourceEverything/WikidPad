@@ -88,13 +88,13 @@ def describeWikiLanguage(ver, app):
 
 PAYLOAD = """
 BracketStart = "[["
-BracketStartPAT = r"\[\["
+BracketStartPAT = r"\\[\\["
 
 BracketEnd = "]]"
-BracketEndPAT = r"\]\]"
+BracketEndPAT = r"\\]\\]"
 
-BracketStartRevPAT = r"\[\["
-BracketEndRevPAT = r"\]\]"
+BracketStartRevPAT = r"\\[\\["
+BracketEndRevPAT = r"\\]\\]"
 """
 
 # add payload for text generator:

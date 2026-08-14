@@ -53,7 +53,7 @@ url_pattern = rcompile("""
     \\S+?                  # URL body
     (?=\\s|[.]\\s|$|[.]$)  # Stop at space/end, or a dot followed by space/end
 ) | (                      # or...
-    \w+([:.]?\w+)*         # word characters, with opt. internal colons/dots
+    \\w+([:.]?\\w+)*       # word characters, with opt. internal colons/dots
 )
 """, verbose=True)
 
@@ -155,7 +155,7 @@ class TeeFilter(Filter):
     >>> f1 = LowercaseFilter()
     >>> # In the other branch, we'll reverse the tokens
     >>> f2 = ReverseTextFilter()
-    >>> ana = RegexTokenizer(r"\S+") | TeeFilter(f1, f2)
+    >>> ana = RegexTokenizer(r"\\S+") | TeeFilter(f1, f2)
     >>> [token.text for token in ana(target)]
     ["alfa", "AFLA", "bravo", "OVARB", "charlie", "EILRAHC"]
 
@@ -164,7 +164,7 @@ class TeeFilter(Filter):
 
     >>> f1 = PassFilter()
     >>> f2 = BiWordFilter()
-    >>> ana = RegexTokenizer(r"\S+") | TeeFilter(f1, f2) | LowercaseFilter()
+    >>> ana = RegexTokenizer(r"\\S+") | TeeFilter(f1, f2) | LowercaseFilter()
     >>> [token.text for token in ana(target)]
     ["alfa", "alfa-bravo", "bravo", "bravo-charlie", "charlie"]
     """

@@ -3942,7 +3942,7 @@ def GetNotebookRoot(panes, notebook_id):
 
 def EscapeDelimiters(s):
     """
-    Changes ``;`` into ``\`` and ``|`` into ``\|`` in the input string.
+    Changes ``;`` into ``\\`` and ``|`` into ``\\|`` in the input string.
 
     :param string `s`: the string to be analyzed.
 
@@ -10752,5 +10752,4 @@ class AuiManager_DCP(AuiManager):
             # if we get here, there's no center pane, create our dummy
             if not self.hasDummyPane:
                 self._createDummyPane()
-
 

@@ -630,6 +630,11 @@ def getAccelPairFromKeyDown(evt):
 
 
 def getAccelPairFromString(s):
+    # wx logs a warning when asked to parse a menu label without a shortcut.
+    # Empty key bindings are valid and mean that no accelerator is configured.
+    if not s or not s.rsplit("\t", 1)[-1].strip():
+        return (None, None)
+
     ae = wx.AcceleratorEntry()
     if not ae.FromString(s):
         return (None, None)
@@ -648,8 +653,6 @@ def setHotKeyByString(win, hotKeyId, keyString):
 
     accFlags, vkCode = getAccelPairFromString("\t" + keyString)
 
-#     win.RegisterHotKey(hotKeyId, 0, 0)
-    win.UnregisterHotKey(hotKeyId)
     if accFlags is not None:
         modFlags = 0
         if accFlags & wx.ACCEL_SHIFT:

@@ -12,7 +12,9 @@ if not True:
 
 import ExceptionLogger
 
-import wx, wx.adv, wx.xrc
+# Import wx.html before creating wx.App. Importing it afterward makes wxPython
+# 4.3 register its image and animation handlers a second time.
+import wx, wx.adv, wx.html, wx.xrc
 
 # import srePersistent
 # srePersistent.loadCodeCache()

@@ -15,6 +15,7 @@ from itertools import chain
 import os
 import re
 import sys
+from importlib.machinery import SourceFileLoader
 import importlib.util
 import wx
 
@@ -43,9 +44,12 @@ from pwiki.StringOps import LOWERCASE, UPPERCASE
 from wikidPadParser import WikidPadParser
 from mediaWikiParser import MediaWikiParser
 
+# OverlayParser is Python source stored with WikidPad's nonstandard .pyf suffix,
+# so importlib needs an explicit source loader.
 _overlay_parser_path = os.path.join(EXTENSIONDIR, "OverlayParser.pyf")
-_overlay_parser_spec = importlib.util.spec_from_file_location(
-        'OverlayParser', _overlay_parser_path)
+_overlay_parser_spec = importlib.util.spec_from_loader(
+        'OverlayParser',
+        SourceFileLoader('OverlayParser', _overlay_parser_path))
 OverlayParser = importlib.util.module_from_spec(_overlay_parser_spec)
 _overlay_parser_spec.loader.exec_module(OverlayParser)
 
